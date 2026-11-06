@@ -1,0 +1,10 @@
+# Sürümler Stage 1'de sabitlenecek (pip freeze ile ==)
+firecrawl-py
+playwright
+anthropic
+supabase
+pydantic
+httpx
+feedparser
+python-dotenv
+tenacity

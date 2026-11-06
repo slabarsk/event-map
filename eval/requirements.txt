@@ -1,0 +1,3 @@
+-r ../crawler/requirements.txt
+pytest
+pandas
