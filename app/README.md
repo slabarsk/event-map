@@ -4,7 +4,9 @@ Event Map'in Flutter uygulaması (Android, iOS, web).
 
 ## Çalıştırma
 
-**Demo modu** (Supabase gerekmez, hesaplar yalnızca bu cihazda saklanır):
+Gerekli sürüm: Flutter **3.50.0** stable veya üstü (Dart 3.14). Daha eski SDK'larda `flutter pub get` çözümlenmez.
+
+**Demo modu** (Supabase gerekmez, hesaplar yalnızca bu cihazda saklanır, haritada `supabase/seed.sql` ile aynı örnek etkinlikler görünür):
 
 ```bash
 flutter pub get
@@ -16,10 +18,13 @@ flutter run -d chrome
 ```bash
 flutter run -d chrome \
   --dart-define=SUPABASE_URL=https://<proje>.supabase.co \
-  --dart-define=SUPABASE_ANON_KEY=<publishable-key>
+  --dart-define=SUPABASE_ANON_KEY=<publishable-key> \
+  --dart-define=MAPBOX_PUBLIC_TOKEN=<pk.…>
 ```
 
-Önce `supabase/migrations/` altındaki migration'ları uygulayın (`profiles` tablosu, RLS, rol fonksiyonları).
+Önce `supabase/migrations/` altındaki migration'ları uygulayın (`profiles` tablosu, RLS, rol fonksiyonları). Harita etkinlikleri `events_near` RPC'sinden okur; bu fonksiyon projede yoksa harita başlığında "Etkinlik verisi henüz hazır değil" yazar.
+
+`MAPBOX_PUBLIC_TOKEN` verilmezse harita geliştirme için OpenStreetMap tile'larını kullanır. OSM'nin kullanım politikası yoğun trafiğe izin vermediği için yayında (web linki, APK) token verilmelidir.
 
 ## Akış
 
@@ -28,7 +33,10 @@ Karşılama → Kullanıcı / Organizatör seçimi
   → Giriş · Kayıt (e-posta, Google) + KVKK açık rızası
   → 3 adımlı onboarding (role göre farklı)
   → Özet → Ana sayfa  ya da  Profil ayarları → Ana sayfa
+Alt menü: Ana sayfa · Harita · Profil
 ```
+
+**Harita:** Yaklaşan yayınlanmış etkinlikler mekân başına tek pin olarak gösterilir. Pin rengi mekândaki ilk etkinliğin kategorisinden gelir, birden çok etkinlik varsa adet rozeti çıkar. Pine dokununca mekândaki etkinlikler tarih (İzmir saati), fiyat ve fiyat rozetiyle listelenir: `estimated` her zaman **Tahmini**, `looked_up` **Bilet sayfasından** olarak etiketlenir.
 
 | Rol | Onboarding adımları |
 |---|---|
@@ -46,6 +54,8 @@ lib/
     auth/        model, repository (Supabase + demo), giriş/kayıt/KVKK ekranları
     onboarding/  3 adımlı akış ve tekrar kullanılan tercih seçicileri
     home/        kullanıcı ana sayfası, organizatör paneli
+    events/      etkinlik modeli, events_near repository (Supabase + demo), mekân sayfası
+    map/         flutter_map ekranı ve mekân pinleri
     profile/     profil ve ayarlar
 ```
 

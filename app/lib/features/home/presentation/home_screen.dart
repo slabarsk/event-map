@@ -155,9 +155,16 @@ class _UserHome extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        MapPreview(
-          height: 300,
-          stats: [('${prefs.radiusKm}', 'km'), ('${mine.length}', 'İlgi')],
+        Semantics(
+          button: true,
+          label: 'Haritayı aç',
+          child: GestureDetector(
+            onTap: () => context.go(Routes.map),
+            child: MapPreview(
+              height: 300,
+              stats: [('${prefs.radiusKm}', 'km'), ('${mine.length}', 'İlgi')],
+            ),
+          ),
         ),
         const SizedBox(height: 28),
         SectionHeader(
