@@ -11,6 +11,7 @@ import '../../features/auth/presentation/splash_screen.dart';
 import '../../features/auth/presentation/welcome_screen.dart';
 import '../../features/home/presentation/home_shell.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/map/presentation/map_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/profile/presentation/settings_screen.dart';
@@ -23,6 +24,7 @@ abstract final class Routes {
   static const consent = '/consent';
   static const onboarding = '/onboarding';
   static const home = '/home';
+  static const map = '/map';
   static const profile = '/profile';
   static const settings = '/profile/settings';
 }
@@ -62,6 +64,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: Routes.home,
             pageBuilder: (_, _) => const NoTransitionPage(child: HomeScreen()),
+          ),
+          GoRoute(
+            path: Routes.map,
+            pageBuilder: (_, _) => const NoTransitionPage(child: MapScreen()),
           ),
           GoRoute(
             path: Routes.profile,
