@@ -10,6 +10,10 @@ final authRepositoryProvider = Provider<AuthRepository>(
   (ref) => throw UnimplementedError('authRepositoryProvider override edilmedi'),
 );
 
+/// GEÇİCİ: Çıkış yapınca onboarding sıfırlanır, böylece bir sonraki girişte
+/// onboarding akışı yeniden görünür. Test bittiğinde `false` yap.
+const resetOnboardingOnSignOut = true;
+
 /// Oturumdaki kullanıcı. null = giriş yapılmamış.
 final authControllerProvider = AsyncNotifierProvider<AuthController, AppUser?>(
   AuthController.new,
@@ -18,11 +22,15 @@ final authControllerProvider = AsyncNotifierProvider<AuthController, AppUser?>(
 class AuthController extends AsyncNotifier<AppUser?> {
   AuthRepository get _repo => ref.read(authRepositoryProvider);
 
+  /// Çıkış sırasında onboarding sıfırlanırken router'ın onboarding'e
+  /// yönlenmemesi için ara durum yayınlarını yok sayar.
+  bool _signingOut = false;
+
   @override
   Future<AppUser?> build() async {
-    final sub = _repo.authStateChanges().listen(
-      (user) => state = AsyncData(user),
-    );
+    final sub = _repo.authStateChanges().listen((user) {
+      if (!_signingOut) state = AsyncData(user);
+    });
     ref.onDispose(sub.cancel);
     return _repo.currentUser();
   }
@@ -64,7 +72,22 @@ class AuthController extends AsyncNotifier<AppUser?> {
   }
 
   Future<void> signOut() async {
-    await _repo.signOut();
+    final user = state.value;
+    _signingOut = true;
+    try {
+      if (resetOnboardingOnSignOut &&
+          user != null &&
+          user.onboardingCompleted) {
+        try {
+          await _repo.updateProfile(user.copyWith(onboardingCompleted: false));
+        } catch (_) {
+          // Sıfırlama başarısız olsa da çıkış devam etmeli.
+        }
+      }
+      await _repo.signOut();
+    } finally {
+      _signingOut = false;
+    }
     state = const AsyncData(null);
   }
 
