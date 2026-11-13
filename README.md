@@ -2,7 +2,7 @@
 
 İzmir'deki etkinlikleri her gün web'den toplayıp tarih, mekân, kategori ve fiyat bilgisiyle konum tabanlı bir haritada gösteren mobil uygulama. Fiyat yoksa ajan arar; bulamazsa tahmin eder ve **"Tahmini"** olarak etiketler.
 
-> Durum: **Stage 1 – Kickoff.** Aşama aşama plan için [ROADMAP.md](ROADMAP.md), mimari için [docs/architecture.html](docs/architecture.html).
+> Durum: **Stage 4 – First flow.** Şema, RLS ve seed hazır; tek kaynaklı (AASSM) crawler ve günlük cron kuruldu. Aşama aşama plan için [ROADMAP.md](ROADMAP.md), mimari için [docs/architecture.html](docs/architecture.html).
 
 ## Demo Day hedefleri
 
@@ -90,13 +90,25 @@ supabase start
 supabase db reset           # migration'lar + seed
 ```
 
+**Veritabanı testleri** (RLS, `events_near`):
+
+```bash
+supabase test db
+```
+
 **Crawler:**
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -r crawler/requirements.txt
-playwright install chromium
+playwright install chromium               # yalnızca dinamik kaynaklar için (Stage 5)
+
+python -m crawler.run --source aassm --dry-run   # DB'ye yazmadan çıkarımı göster
+python -m crawler.run --source aassm             # Supabase'e yaz
+python -m pytest crawler                         # birim testleri
 ```
+
+Günlük koşu `.github/workflows/crawl.yml` ile her sabah 06:17'de (İzmir) çalışır; elle tetiklemek için Actions → crawl → Run workflow. Gerekli secret'lar dosyanın başında listelidir. Her koşu `crawl_runs` tablosuna yazılır.
 
 **Uygulama:**
 
@@ -113,7 +125,7 @@ pip install -r eval/requirements.txt
 pytest eval
 ```
 
-> Uygulama kodu, migration'lar ve crawler adapter'ları ilgili aşamalarda eklenecek. Bkz. [ROADMAP.md](ROADMAP.md).
+> Fiyat ajanı, duplicate merge, diğer kaynak adapter'ları ve Edge Functions Stage 5'te eklenecek. Bkz. [ROADMAP.md](ROADMAP.md).
 
 ## Güvenlik ve veri
 
