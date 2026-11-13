@@ -2,7 +2,7 @@
 
 İzmir'deki etkinlikleri her gün web'den toplayıp tarih, mekân, kategori ve fiyat bilgisiyle konum tabanlı bir haritada gösteren mobil uygulama. Fiyat yoksa ajan arar; bulamazsa tahmin eder ve **"Tahmini"** olarak etiketler.
 
-> Durum: **Stage 4 – First flow.** Şema, RLS ve seed hazır; tek kaynaklı (AASSM) crawler ve günlük cron kuruldu. Aşama aşama plan için [ROADMAP.md](ROADMAP.md), mimari için [docs/architecture.html](docs/architecture.html).
+> Durum: **Stage 4 – First flow.** Şema, RLS ve seed hazır; tek kaynaklı (AASSM) crawler ve günlük cron kuruldu. Aşama aşama plan için [roadmap/ROADMAP.md](roadmap/ROADMAP.md), mimari için [roadmap/architecture.html](roadmap/architecture.html).
 
 ## Demo Day hedefleri
 
@@ -41,7 +41,7 @@
 | AI | Claude: çıkarım, fiyat arama/tahmini, doğal dil → filtre |
 | Harita ve geocoding | Mapbox |
 
-Detaylı diyagramlar (mimari, veri modeli, akışlar): [docs/architecture.html](docs/architecture.html)
+Detaylı diyagramlar (mimari, veri modeli, akışlar): [roadmap/architecture.html](roadmap/architecture.html)
 
 ## Repo yapısı
 
@@ -61,7 +61,8 @@ eval/
   datasets/             Etiketlenmiş test setleri
   results/              Ölçüm sonuçları
   requirements.txt
-docs/                   Mimari diyagram, teknik rapor
+roadmap/                Yol haritası, mimari diyagramlar, wireframe
+docs/                   Teknik rapor
 .github/workflows/      Günlük crawl cron'u
 .env.example            Gerekli anahtarların adları (değer yok)
 ```
@@ -125,7 +126,7 @@ pip install -r eval/requirements.txt
 pytest eval
 ```
 
-> Fiyat ajanı, duplicate merge, diğer kaynak adapter'ları ve Edge Functions Stage 5'te eklenecek. Bkz. [ROADMAP.md](ROADMAP.md).
+> Fiyat ajanı, duplicate merge, diğer kaynak adapter'ları ve Edge Functions Stage 5'te eklenecek. Bkz. [roadmap/ROADMAP.md](roadmap/ROADMAP.md).
 
 ## Güvenlik ve veri
 
