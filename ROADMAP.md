@@ -182,10 +182,10 @@ MAPBOX_SECRET_TOKEN=         # crawler (geocoding)
 
 **Yapılacaklar:**
 
-- [ ] Şema migration'ları ve RLS politikaları
-- [ ] Auth: e-posta ve Google girişi. Organizatör rolünü admin onaylar.
-- [ ] İlk açılışta KVKK aydınlatma metni ve açık rıza ekranı
-- [ ] Flutter: login, boş harita, `seed.sql` ile gelen sahte etkinliklerin pin olarak görünmesi
+- [x] Şema migration'ları ve RLS politikaları
+- [x] Auth: e-posta ve Google girişi. Organizatör rolünü admin onaylar.
+- [x] İlk açılışta KVKK aydınlatma metni ve açık rıza ekranı
+- [x] Flutter: login, boş harita, `seed.sql` ile gelen sahte etkinliklerin pin olarak görünmesi
 
 **Göster:** Canlı login, seed edilmiş pinler, RLS testi (başka kullanıcının kayıtlarına erişilemediğini göster).
 
@@ -193,10 +193,11 @@ MAPBOX_SECRET_TOKEN=         # crawler (geocoding)
 
 **Hedef:** **Tek** kaynak → çıkarım → DB → haritada pin, uçtan uca ve canlı.
 
-- [ ] En kolay kaynakla başla (tercihen belediye sayfası ya da RSS).
-- [ ] Pipeline: fetch → temiz markdown (Firecrawl) → Claude ile **structured output** (JSON şema: name, date, venue, address, price, category) → venue eşleştirme ve geocode → upsert.
-- [ ] `content_hash` değişmediyse Claude'u çağırma. Büyük maliyet tasarrufu buradan gelir.
-- [ ] GitHub Actions cron'u kur, her çalışma `crawl_runs` tablosuna loglansın.
+- [x] En kolay kaynakla başla (tercihen belediye sayfası ya da RSS).
+- [x] Pipeline: fetch → temiz markdown (Firecrawl) → Claude ile **structured output** (JSON şema: name, date, venue, address, price, category) → venue eşleştirme ve geocode → upsert.
+- [x] `content_hash` değişmediyse Claude'u çağırma. Büyük maliyet tasarrufu buradan gelir.
+- [x] GitHub Actions cron'u kur, her çalışma `crawl_runs` tablosuna loglansın.
+- [ ] İlk canlı koşu: repo secret'larını gir, `--dry-run` ile AASSM çıktısını kontrol et, sonra cron'u elle tetikle.
 
 **Göster:** Cron tetiklenir, yeni etkinlik birkaç dakika içinde uygulamada pin olur.
 

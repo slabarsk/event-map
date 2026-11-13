@@ -22,7 +22,7 @@ flutter run -d chrome \
   --dart-define=MAPBOX_PUBLIC_TOKEN=<pk.…>
 ```
 
-Önce `supabase/migrations/` altındaki migration'ları uygulayın (`profiles` tablosu, RLS, rol fonksiyonları). Harita etkinlikleri `events_near` RPC'sinden okur; bu fonksiyon projede yoksa harita başlığında "Etkinlik verisi henüz hazır değil" yazar.
+Önce `supabase/migrations/` altındaki migration'ları uygulayın (`profiles`, etkinlik şeması, RLS, `events_near`). Lokalde `supabase db reset` migration'larla birlikte `supabase/seed.sql`'i de yükler; haritada demo moddakiyle aynı etkinlikler görünür. `events_near` projede yoksa harita başlığında "Etkinlik verisi henüz hazır değil" yazar.
 
 `MAPBOX_PUBLIC_TOKEN` verilmezse harita geliştirme için OpenStreetMap tile'larını kullanır. OSM'nin kullanım politikası yoğun trafiğe izin vermediği için yayında (web linki, APK) token verilmelidir.
 
