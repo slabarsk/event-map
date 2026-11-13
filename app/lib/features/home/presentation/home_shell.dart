@@ -9,7 +9,7 @@ import '../../../core/widgets/common.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../auth/domain/app_user.dart';
 
-/// Ana sayfa ve profil; altta yüzen hap şeklinde gezinme çubuğu.
+/// Ana sayfa, harita ve profil; altta yüzen hap şeklinde gezinme çubuğu.
 /// Organizatörlerde yanında siyah "etkinlik gönder" butonu durur.
 class HomeShell extends ConsumerWidget {
   const HomeShell({super.key, required this.location, required this.child});
@@ -21,6 +21,7 @@ class HomeShell extends ConsumerWidget {
     final user = ref.watch(authControllerProvider).value;
     final role = user?.role ?? UserRole.user;
     final onProfile = location.startsWith(Routes.profile);
+    final onMap = location.startsWith(Routes.map);
 
     return Scaffold(
       extendBody: true,
@@ -60,11 +61,18 @@ class HomeShell extends ConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         _NavItem(
-                          icon: Icons.map_rounded,
+                          icon: Icons.home_rounded,
                           label: 'Ana sayfa',
-                          active: !onProfile,
+                          active: !onProfile && !onMap,
                           role: role,
                           onTap: () => context.go(Routes.home),
+                        ),
+                        _NavItem(
+                          icon: Icons.map_rounded,
+                          label: 'Harita',
+                          active: onMap,
+                          role: role,
+                          onTap: () => context.go(Routes.map),
                         ),
                         _NavItem(
                           icon: Icons.person_rounded,
