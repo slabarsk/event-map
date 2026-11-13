@@ -1,10 +1,11 @@
-# Sürümler Stage 1'de sabitlenecek (pip freeze ile ==)
-firecrawl-py
-playwright
-anthropic
-supabase
-pydantic
-httpx
-feedparser
-python-dotenv
-tenacity
+# Sürümler sabitlenmiştir (Python 3.14 ile doğrulandı). Güncellemek için:
+#   pip install -U <paket> && pip freeze | grep -i <paket>
+firecrawl-py==4.55.0
+playwright==1.64.1
+anthropic==2.6.0
+supabase==2.34.0
+pydantic==2.14.3
+httpx==0.28.1
+feedparser==6.0.14
+python-dotenv==1.2.4
+tenacity==9.2.1

@@ -1,0 +1,49 @@
+# Günlük crawl. Her kaynak koşusu Supabase'deki crawl_runs tablosuna yazılır.
+# Gerekli repo secret'ları (Settings → Secrets and variables → Actions):
+#   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, ANTHROPIC_API_KEY, FIRECRAWL_API_KEY
+#   MAPBOX_SECRET_TOKEN (DB'de olmayan yeni mekânlar için; yoksa o etkinlikler atlanır)
+name: crawl
+
+on:
+  schedule:
+    - cron: "17 3 * * *" # her gün 06:17 İzmir saati
+  workflow_dispatch:
+    inputs:
+      source:
+        description: "Tek kaynak slug'ı (boş: etkin tüm kaynaklar)"
+        required: false
+        default: ""
+
+concurrency:
+  group: crawl
+  cancel-in-progress: false
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: crawler/requirements.txt
+
+      - run: pip install -r crawler/requirements.txt
+
+      - name: Crawl
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
+          MAPBOX_SECRET_TOKEN: ${{ secrets.MAPBOX_SECRET_TOKEN }}
+          SOURCE: ${{ inputs.source }}
+        run: |
+          if [ -n "$SOURCE" ]; then
+            python -m crawler.run --source "$SOURCE"
+          else
+            python -m crawler.run
+          fi
