@@ -67,7 +67,8 @@ app/            Flutter (pubspec.yaml)
 supabase/       migrations/, functions/, seed.sql, config.toml
 crawler/        sources/, extract/, price/, dedup/, geocode/, requirements.txt
 eval/           datasets/, run_eval.py, results/, requirements.txt
-docs/           architecture diagram, technical report
+roadmap/        ROADMAP.md, architecture.html, wireframe.html
+docs/           technical report
 .env.example    .github/workflows/crawl.yml
 ```
 
