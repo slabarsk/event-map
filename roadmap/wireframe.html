@@ -1,0 +1,1530 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Event Map · Wireframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap">
+<style>
+:root {
+  --bg: #EEE8EC; --ink: #1E1A24; --muted: #6B6475; --line: #DCD2D8;
+  --tab: #FFFFFF; --tab-on: #1E1A24; --tab-on-ink: #FFFFFF;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+header { padding: 20px 16px 8px; max-width: 1180px; margin: 0 auto; }
+h1 { margin: 0 0 4px; font-family: Oswald, sans-serif; font-weight: 600; font-size: 26px; letter-spacing: 0.2px; }
+.sub { margin: 0 0 14px; font-size: 14px; color: var(--muted); }
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.tab { min-height: 40px; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--tab); color: var(--ink); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.tab[aria-current="true"] { background: var(--tab-on); border-color: var(--tab-on); color: var(--tab-on-ink); }
+main { max-width: 1180px; margin: 0 auto; padding: 16px; display: flex; gap: 32px; align-items: flex-start; justify-content: center; flex-wrap: wrap; }
+.stage { flex-shrink: 0; }
+.phone { width: 390px; height: 844px; border-radius: 40px; overflow: hidden; box-shadow: 0 24px 60px rgba(30,26,36,0.22); transform-origin: top left; background: #F8EFF3; }
+#screen { width: 390px; height: 844px; position: relative; }
+aside { flex: 1 1 280px; max-width: 360px; display: flex; flex-direction: column; gap: 14px; }
+.note { border-radius: 14px; padding: 14px 16px; font-size: 13px; line-height: 1.5; }
+.note p { margin: 0 0 8px; } .note p:first-child { font-weight: 700; } .note p:last-child { margin-bottom: 0; }
+.note-orange { background: #FDE9CF; } .note-blue { background: #DCEBFB; } .note-pink { background: #FBE0EC; } .note-gray { background: #E9E6EA; }
+@media (max-width: 760px) { aside { max-width: none; } }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Event Map · Mobil wireframe (main tasarımı, örnek veri)</h1>
+    <p class="sub">Tıklanabilir mobil wireframe. Ekranlar arasında sekmelerle ya da ekran içindeki bağlantılarla gezinebilirsiniz.</p>
+    <nav class="tabs" aria-label="Ekranlar">
+      <button type="button" class="tab" data-screen="Main">1 · Karşılama + rol seçimi</button>
+      <button type="button" class="tab" data-screen="Giris">2 · Giriş / kayıt + KVKK</button>
+      <button type="button" class="tab" data-screen="Harita">3 · Ana sayfa + harita</button>
+      <button type="button" class="tab" data-screen="Detay">4 · Etkinlik detayı</button>
+      <button type="button" class="tab" data-screen="Arama">5 · Doğal dil arama sonucu</button>
+      <button type="button" class="tab" data-screen="Kayitli">6 · Kayıtlı etkinlikler</button>
+      <button type="button" class="tab" data-screen="Paylasim">7 · Instagram paylaşımı → pin</button>
+      <button type="button" class="tab" data-screen="Organizator">8 · Organizatör paneli</button>
+      <button type="button" class="tab" data-screen="Profil">9 · Profil + hesap silme</button>
+    </nav>
+  </header>
+  <main>
+    <div class="stage" id="stage"><div class="phone" id="phone"><div id="screen"></div></div></div>
+    <aside>
+      <div class="note note-orange"><p>Fiyat rozetleri</p><p>Listelenmiş: kaynakta yazan fiyat.<br>Bulundu: fiyat eksikti, ajan bilet/detay sayfasında buldu (kaynak linkiyle).<br>Tahmini: bulunamadı, Claude benzer etkinliklerden tahmin etti. Her zaman etiketli.</p><p>Tüm etkinlik, kişi ve kaynak adları örnektir.</p></div>
+      <div class="note note-blue"><p>Demo Day eşlemesi</p><p>a) Ana sayfa + harita: bu hafta sonu, 5+ kaynak<br>b) Doğal dil arama: &quot;Bu akşam yakınımdaki ücretsiz konserler&quot;<br>c) Instagram paylaşımı → onay formu → pin</p><p>Play ile ekranlar arasında gezinebilirsiniz.</p></div>
+      <div class="note note-pink"><p>Tasarım kaynağı: main dalındaki Flutter teması</p><p>Kullanıcı: mercan #F0654E<br>Organizatör: mürdüm #7B4FD8<br>Zemin: #F8EFF3 + bulanık renk lekeleri<br>Başlık: Oswald (büyük harf)<br>Metin: Plus Jakarta Sans<br>Kartlar: buzlu cam, 28 px köşe<br>Menü: yüzen degrade hap</p></div>
+    </aside>
+  </main>
+
+<template id="tpl-Main">
+<style>#screen.s-Main a{color:#DD4D3A}#screen.s-Main a:hover{color:#B93A2A}</style>
+<div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; overflow: hidden; background: #F8EFF3; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #1E1A24">
+  <div aria-hidden="true" style="position: absolute; inset: 0; overflow: hidden">
+    <span style="position: absolute; left: -130px; top: -120px; width: 350px; height: 350px; border-radius: 50%; background: #F2A3C0; opacity: 0.55; filter: blur(70px)"></span>
+    <span style="position: absolute; right: -140px; top: 160px; width: 290px; height: 290px; border-radius: 50%; background: #FFC7A6; opacity: 0.55; filter: blur(70px)"></span>
+    <span style="position: absolute; left: -90px; bottom: -80px; width: 310px; height: 310px; border-radius: 50%; background: #C7B6F0; opacity: 0.55; filter: blur(70px)"></span>
+  </div>
+
+  <div style="position: absolute; inset: 0; overflow-y: auto; padding: 16px 20px 24px; display: flex; flex-direction: column; gap: 16px; box-sizing: border-box">
+    <div style="display: flex; align-items: center; gap: 12px">
+      <span style="width: 44px; height: 44px; border-radius: 15px; background: linear-gradient(135deg, #F7836A, #DD4D3A); box-shadow: 0 8px 18px rgba(240,101,78,0.4); display: flex; align-items: center; justify-content: center">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="#FFFFFF" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"></path></svg>
+      </span>
+      <span style="display: flex; flex-direction: column">
+        <span style="font-family: Oswald, sans-serif; font-weight: 600; font-size: 20px; line-height: 1.05; letter-spacing: 0.2px">EVENT MAP</span>
+        <span style="font-size: 12px; color: #6B6475">İzmir</span>
+      </span>
+      <span style="margin-left: auto; font-size: 11px; font-weight: 700; background: rgba(255,255,255,0.8); border-radius: 999px; padding: 6px 10px">Demo</span>
+    </div>
+
+    <div style="height: 230px; flex-shrink: 0; border-radius: 32px; border: 5px solid #FFFFFF; background: #F4EEEA; position: relative; overflow: hidden; box-shadow: 0 14px 30px rgba(240,101,78,0.18); box-sizing: border-box">
+      <svg width="100%" height="100%" viewBox="0 0 340 220" preserveAspectRatio="none" style="position: absolute; inset: 0" aria-hidden="true">
+        <path d="M0 0 H143 C136 44 88 62 102 101 C112 132 61 154 34 220 H0 Z" fill="#CFE3F7"></path>
+        <rect x="156" y="88" width="54" height="35" rx="14" fill="#D9EED3"></rect>
+        <rect x="272" y="145" width="48" height="48" rx="14" fill="#D9EED3"></rect>
+        <path d="M136 -10 C122 66 143 121 102 230" stroke="#FFFFFF" stroke-width="7" fill="none" stroke-linecap="round"></path>
+        <path d="M116 40 L350 53 M116 106 L350 119 M116 163 L350 176" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"></path>
+        <path d="M177 -10 L156 230 M238 -10 L218 230 M299 -10 L279 230" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"></path>
+      </svg>
+      <sc-for list="{{pins}}" as="p" hint-placeholder-count="5">
+        <span style="position: absolute; left: {{p.x}}; top: {{p.y}}; width: 34px; height: 34px; border-radius: 50%; background: {{p.color}}; border: 3px solid #FFFFFF; box-shadow: 0 5px 12px {{p.glow}}; display: flex; align-items: center; justify-content: center; box-sizing: border-box">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{p.icon}}"></path></svg>
+        </span>
+      </sc-for>
+      <span style="position: absolute; left: 50px; top: 18px; background: #FFFFFF; border-radius: 12px; padding: 7px 12px 7px 10px; box-shadow: 0 6px 14px rgba(30,26,36,0.1); display: flex; flex-direction: column">
+        <span style="font-size: 12px; font-weight: 700">Caz gecesi</span>
+        <span style="font-size: 11px; font-weight: 700; color: #1F9D57">21:00 · Ücretsiz</span>
+      </span>
+      <div style="position: absolute; right: 10px; top: 10px; display: flex; flex-direction: column; gap: 8px">
+        <span style="background: #FFFFFF; border-radius: 18px; padding: 8px 12px; box-shadow: 0 8px 20px rgba(240,101,78,0.22); display: flex; flex-direction: column; align-items: center">
+          <span style="font-family: Oswald, sans-serif; font-weight: 700; font-size: 24px; line-height: 1.05; color: #F0654E">5+</span>
+          <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.8px; color: #6B6475">KAYNAK</span>
+        </span>
+        <span style="background: #FFFFFF; border-radius: 18px; padding: 8px 12px; box-shadow: 0 8px 20px rgba(240,101,78,0.22); display: flex; flex-direction: column; align-items: center">
+          <span style="font-family: Oswald, sans-serif; font-weight: 700; font-size: 24px; line-height: 1.05; color: #F0654E">14</span>
+          <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.8px; color: #6B6475">İLÇE</span>
+        </span>
+      </div>
+      <span style="position: absolute; left: 12px; bottom: 12px; background: #1E1A24; color: #FFFFFF; border-radius: 999px; padding: 7px 12px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="#FFFFFF" aria-hidden="true"><path d="M21 3 3 10.5l7.5 3L13.5 21z"></path></svg>Yakınımda bu akşam</span>
+    </div>
+
+    <div style="display: flex; gap: 4px; overflow-x: auto; flex-shrink: 0; padding-bottom: 2px">
+      <sc-for list="{{cats}}" as="c" hint-placeholder-count="6">
+        <span style="width: 68px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 6px">
+          <span style="width: 60px; height: 60px; border-radius: 50%; padding: 2.5px; background: conic-gradient({{c.color}}, {{c.soft}}, {{c.color}}); box-sizing: border-box">
+            <span style="display: block; width: 100%; height: 100%; border-radius: 50%; background: #FFFFFF; padding: 2.5px; box-sizing: border-box">
+              <span style="width: 100%; height: 100%; border-radius: 50%; background: {{c.color}}; display: flex; align-items: center; justify-content: center">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{c.icon}}"></path></svg>
+              </span>
+            </span>
+          </span>
+          <span style="font-size: 11px; font-weight: 600; color: #6B6475; white-space: nowrap">{{c.label}}</span>
+        </span>
+      </sc-for>
+    </div>
+
+    <h1 style="margin: 4px 0 0; font-family: Oswald, sans-serif; font-weight: 600; font-size: 40px; line-height: 1.05; letter-spacing: 0.2px">İZMİR'DE BU AKŞAM <span style="color: #F0654E">NE VAR?</span></h1>
+    <p style="margin: -4px 0 0; font-size: 15px; line-height: 1.5; color: #6B6475">Konserden sergiye şehrin etkinlikleri tek haritada; tarihi, mekânı ve fiyatıyla.</p>
+
+    <a href="Giris.dc.html" style="display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 26px; background: rgba(255,255,255,0.62); border: 1.2px solid rgba(255,255,255,0.8); box-shadow: 0 14px 30px rgba(176,112,138,0.12); backdrop-filter: blur(18px); text-decoration: none; color: #1E1A24; flex-shrink: 0">
+      <span style="width: 54px; height: 54px; border-radius: 18px; background: #FDE5DF; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F0654E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="m15.5 8.5-2 5-5 2 2-5z"></path></svg>
+      </span>
+      <span style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+        <span style="font-family: Oswald, sans-serif; font-weight: 600; font-size: 19px; line-height: 1.05">ETKİNLİK KEŞFET</span>
+        <span style="font-size: 13px; line-height: 1.45; color: #6B6475">Yakınındaki etkinlikleri bul, filtrele, kaydet.</span>
+      </span>
+      <span style="width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(90deg, #F7836A, #DD4D3A); box-shadow: 0 6px 12px rgba(240,101,78,0.35); display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+      </span>
+    </a>
+    <a href="Organizator.dc.html" style="display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 26px; background: rgba(255,255,255,0.62); border: 1.2px solid rgba(255,255,255,0.8); box-shadow: 0 14px 30px rgba(176,112,138,0.12); backdrop-filter: blur(18px); text-decoration: none; color: #1E1A24; flex-shrink: 0">
+      <span style="width: 54px; height: 54px; border-radius: 18px; background: #EDE5FB; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#7B4FD8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10v4h3l6 4V6L6 10zM16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12"></path></svg>
+      </span>
+      <span style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+        <span style="font-family: Oswald, sans-serif; font-weight: 600; font-size: 19px; line-height: 1.05">ORGANİZATÖRÜM</span>
+        <span style="font-size: 13px; line-height: 1.45; color: #6B6475">Etkinliklerini yayınla, haritada görünür ol.</span>
+      </span>
+      <span style="width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(90deg, #9466F0, #6239C2); box-shadow: 0 6px 12px rgba(123,79,216,0.35); display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+      </span>
+    </a>
+    <p style="margin: 0; font-size: 12px; color: #6B6475; text-align: center">Demo modu · veriler yalnızca bu cihazda</p>
+  </div>
+</div>
+</template>
+<template id="tpl-Giris">
+<style>#screen.s-Giris a{color:#DD4D3A}#screen.s-Giris a:hover{color:#B93A2A}</style>
+<div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; overflow: hidden; background: #F8EFF3; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #1E1A24">
+  <div aria-hidden="true" style="position: absolute; inset: 0; overflow: hidden">
+    <span style="position: absolute; left: -130px; top: -120px; width: 350px; height: 350px; border-radius: 50%; background: {{blob1}}; opacity: 0.5; filter: blur(70px)"></span>
+    <span style="position: absolute; right: -140px; top: 160px; width: 290px; height: 290px; border-radius: 50%; background: {{blob2}}; opacity: 0.5; filter: blur(70px)"></span>
+    <span style="position: absolute; left: -90px; bottom: -80px; width: 310px; height: 310px; border-radius: 50%; background: {{blob3}}; opacity: 0.5; filter: blur(70px)"></span>
+  </div>
+
+  <div style="position: absolute; inset: 0; overflow-y: auto; padding: 8px 20px 32px; display: flex; flex-direction: column; box-sizing: border-box">
+    <div style="display: flex; align-items: center; justify-content: space-between">
+      <a href="Main.dc.html" aria-label="Geri" style="width: 46px; height: 46px; border-radius: 50%; background: rgba(255,255,255,0.8); border: 1.2px solid #FFFFFF; display: flex; align-items: center; justify-content: center; color: #1E1A24; box-sizing: border-box">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"></path></svg>
+      </a>
+      <button type="button" onClick="{{toggleRole}}" aria-label="Rolü değiştir" style="display: flex; align-items: center; gap: 6px; padding: 9px 14px; border-radius: 999px; background: rgba(255,255,255,0.8); border: 1.2px solid #FFFFFF; font: inherit; font-size: 13px; font-weight: 800; color: {{accentText}}; cursor: pointer">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{roleIcon}}"></path></svg>{{roleLabel}} ⇄</button>
+    </div>
+
+    <div role="tablist" style="display: flex; gap: 28px; margin-top: 24px">
+      <sc-for list="{{tabs}}" as="t" hint-placeholder-count="2">
+        <button type="button" role="tab" aria-selected="{{t.on}}" onClick="{{t.pick}}" style="background: none; border: 0; padding: 0; min-height: 44px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; cursor: pointer">
+          <span style="font-family: Oswald, sans-serif; font-weight: 600; font-size: 18px; color: {{t.color}}">{{t.label}}</span>
+          <span style="width: {{t.bar}}; height: 4px; border-radius: 9px; background: {{accent}}"></span>
+        </button>
+      </sc-for>
+    </div>
+
+    <h1 style="margin: 18px 0 0; font-family: Oswald, sans-serif; font-weight: 600; font-size: 38px; line-height: 1.05; letter-spacing: 0.2px">{{title}} <span style="color: {{accent}}">{{titleAccent}}</span></h1>
+    <p style="margin: 10px 0 0; font-size: 15px; line-height: 1.5; color: #6B6475">{{subtitle}}</p>
+
+    <div style="margin-top: 22px; padding: 16px; border-radius: 28px; background: rgba(255,255,255,0.62); border: 1.2px solid rgba(255,255,255,0.8); box-shadow: 0 14px 30px rgba(176,112,138,0.12); backdrop-filter: blur(18px); display: flex; flex-direction: column; gap: 12px">
+      <sc-if value="{{isRegister}}" hint-placeholder-val="{{ false }}">
+        <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: #6B6475">Ad soyad
+          <input type="text" placeholder="Örnek Kullanıcı" style="height: 54px; border-radius: 18px; border: 1px solid #FFFFFF; background: rgba(255,255,255,0.85); padding: 0 18px; font: inherit; font-size: 15px; color: #1E1A24; box-sizing: border-box">
+        </label>
+      </sc-if>
+      <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: #6B6475">E-posta
+        <input type="email" placeholder="ornek@ornek.com" style="height: 54px; border-radius: 18px; border: 1px solid #FFFFFF; background: rgba(255,255,255,0.85); padding: 0 18px; font: inherit; font-size: 15px; color: #1E1A24; box-sizing: border-box">
+      </label>
+      <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: #6B6475">Şifre
+        <input type="password" placeholder="En az 8 karakter" style="height: 54px; border-radius: 18px; border: 1px solid #FFFFFF; background: rgba(255,255,255,0.85); padding: 0 18px; font: inherit; font-size: 15px; color: #1E1A24; box-sizing: border-box">
+      </label>
+      <label style="display: flex; gap: 10px; align-items: flex-start; font-size: 13px; line-height: 1.45; color: #6B6475; cursor: pointer; padding-top: 4px">
+        <input type="checkbox" checked="{{consent}}" onChange="{{toggleConsent}}" style="width: 20px; height: 20px; margin: 0; accent-color: {{accent}}; flex-shrink: 0">
+        <span><strong style="color: {{accentText}}; text-decoration: underline">Aydınlatma Metni</strong>'ni okudum; kişisel verilerimin bu kapsamda işlenmesine açık rıza veriyorum.</span>
+      </label>
+      <sc-if value="{{noConsent}}" hint-placeholder-val="{{ true }}">
+        <span style="font-size: 12px; color: #D93A3A; padding-left: 30px">Devam etmek için onay gerekli</span>
+      </sc-if>
+    </div>
+
+    <div style="margin-top: 22px; display: flex; flex-direction: column; gap: 0">
+      <sc-if value="{{consent}}" hint-placeholder-val="{{ false }}">
+        <a href="{{nextHref}}" style="height: 58px; border-radius: 999px; background: {{gradient}}; box-shadow: 0 10px 22px {{glow}}; color: #FFFFFF; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; text-decoration: none">{{cta}}</a>
+      </sc-if>
+      <sc-if value="{{noConsent}}" hint-placeholder-val="{{ true }}">
+        <button type="button" disabled style="height: 58px; border-radius: 999px; border: 0; background: {{gradient}}; opacity: 0.45; color: #FFFFFF; font: inherit; font-size: 16px; font-weight: 700">{{cta}}</button>
+      </sc-if>
+      <div style="display: flex; align-items: center; gap: 12px; padding: 20px 0; font-size: 12px; color: #6B6475">
+        <span style="flex: 1; height: 1px; background: #EDE2E8"></span>ya da<span style="flex: 1; height: 1px; background: #EDE2E8"></span>
+      </div>
+      <a href="{{nextHref}}" style="height: 56px; border-radius: 999px; background: rgba(255,255,255,0.85); border: 1.2px solid #FFFFFF; color: #1E1A24; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 12px; text-decoration: none">
+        <span style="font-size: 20px; font-weight: 800; color: #4285F4">G</span>Google ile devam et</a>
+    </div>
+  </div>
+</div>
+</template>
+<template id="tpl-Harita">
+<style>#screen.s-Harita a{color:#DD4D3A}#screen.s-Harita a:hover{color:#B93A2A}</style>
+<div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; overflow: hidden; background: #F8EFF3; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #1E1A24">
+  <div aria-hidden="true" style="position: absolute; inset: 0; overflow: hidden">
+    <span style="position: absolute; left: -130px; top: -120px; width: 350px; height: 350px; border-radius: 50%; background: #F2A3C0; opacity: 0.33; filter: blur(70px)"></span>
+    <span style="position: absolute; right: -140px; top: 200px; width: 290px; height: 290px; border-radius: 50%; background: #FFC7A6; opacity: 0.33; filter: blur(70px)"></span>
+    <span style="position: absolute; left: -90px; bottom: -80px; width: 310px; height: 310px; border-radius: 50%; background: #C7B6F0; opacity: 0.33; filter: blur(70px)"></span>
+  </div>
+
+  <div style="position: absolute; inset: 0; overflow-y: auto; padding: 12px 20px 120px; display: flex; flex-direction: column; gap: 18px; box-sizing: border-box">
+    <div style="display: flex; align-items: center; gap: 12px">
+      <a href="Profil.dc.html" aria-label="Profil" style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(90deg, #F7836A, #DD4D3A); border: 2px solid #FFFFFF; display: flex; align-items: center; justify-content: center; font-family: Oswald, sans-serif; font-weight: 700; font-size: 19px; color: #FFFFFF; text-decoration: none; box-sizing: border-box; flex-shrink: 0">ÖK</a>
+      <span style="flex: 1; display: flex; flex-direction: column">
+        <span style="font-size: 14px; font-weight: 600; color: #6B6475">Merhaba Örnek</span>
+        <span style="font-family: Oswald, sans-serif; font-weight: 600; font-size: 22px; line-height: 1.05; letter-spacing: 0.2px">KONAK <span style="color: #F0654E">BU AKŞAM</span></span>
+      </span>
+      <button type="button" aria-label="Bildirimler" style="width: 46px; height: 46px; border-radius: 50%; background: rgba(255,255,255,0.8); border: 1.2px solid #FFFFFF; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E1A24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20a2 2 0 0 0 4 0"></path></svg>
+      </button>
+    </div>
+
+    <a href="Arama.dc.html" style="display: flex; align-items: center; gap: 12px; padding: 8px 8px 8px 18px; border-radius: 999px; background: rgba(255,255,255,0.62); border: 1.2px solid rgba(255,255,255,0.8); box-shadow: 0 14px 30px rgba(176,112,138,0.12); backdrop-filter: blur(18px); text-decoration: none; color: #6B6475">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="#F0654E" aria-hidden="true"><path d="M10 3l1.8 5.2L17 10l-5.2 1.8L10 17l-1.8-5.2L3 10l5.2-1.8zM18 14l.9 2.1L21 17l-2.1.9L18 20l-.9-2.1L15 17l2.1-.9z"></path></svg>
+      <span style="flex: 1; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Bu akşam yakınımdaki ücretsiz konserler…</span>
+      <span style="width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(90deg, #F7836A, #DD4D3A); display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m20 20-4-4"></path></svg>
+      </span>
+    </a>
+
+    <div style="display: flex; gap: 8px; overflow-x: auto; margin: -4px 0">
+      <sc-for list="{{pills}}" as="p" hint-placeholder-count="4">
+        <button type="button" onClick="{{p.pick}}" aria-pressed="{{p.on}}" style="flex-shrink: 0; padding: 10px 16px; border-radius: 999px; border: 1.2px solid {{p.border}}; background: {{p.bg}}; color: {{p.fg}}; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap">{{p.label}}</button>
+      </sc-for>
+    </div>
+
+    <div style="display: flex; gap: 4px; overflow-x: auto; flex-shrink: 0">
+      <sc-for list="{{cats}}" as="c" hint-placeholder-count="6">
+        <button type="button" onClick="{{c.pick}}" aria-pressed="{{c.on}}" style="width: 68px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; background: none; border: 0; padding: 0; cursor: pointer; font: inherit">
+          <span style="width: 60px; height: 60px; border-radius: 50%; padding: 2.5px; background: {{c.ring}}; box-sizing: border-box">
+            <span style="display: block; width: 100%; height: 100%; border-radius: 50%; background: #FFFFFF; padding: 2.5px; box-sizing: border-box">
+              <span style="width: 100%; height: 100%; border-radius: 50%; background: {{c.color}}; display: flex; align-items: center; justify-content: center">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{c.icon}}"></path></svg>
+              </span>
+            </span>
+          </span>
+          <span style="font-size: 11px; font-weight: 600; color: #6B6475; white-space: nowrap">{{c.label}}</span>
+        </button>
+      </sc-for>
+    </div>
+
+    <div style="height: 300px; flex-shrink: 0; border-radius: 32px; border: 5px solid #FFFFFF; background: #F4EEEA; position: relative; overflow: hidden; box-shadow: 0 14px 30px rgba(240,101,78,0.18); box-sizing: border-box">
+      <svg width="100%" height="100%" viewBox="0 0 340 290" preserveAspectRatio="none" style="position: absolute; inset: 0" aria-hidden="true">
+        <path d="M0 0 H143 C136 58 88 81 102 133 C112 174 61 203 34 290 H0 Z" fill="#CFE3F7"></path>
+        <rect x="156" y="116" width="54" height="46" rx="14" fill="#D9EED3"></rect>
+        <rect x="272" y="191" width="48" height="64" rx="14" fill="#D9EED3"></rect>
+        <path d="M136 -10 C122 87 143 160 102 300" stroke="#FFFFFF" stroke-width="7" fill="none" stroke-linecap="round"></path>
+        <path d="M116 52 L350 70 M116 139 L350 156 M116 215 L350 232" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"></path>
+        <path d="M177 -10 L156 300 M238 -10 L218 300 M299 -10 L279 300" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"></path>
+        <text x="16" y="60" font-family="Plus Jakarta Sans, sans-serif" font-size="11" font-weight="700" fill="#5E86A8">Körfez</text>
+      </svg>
+      <sc-for list="{{pins}}" as="p" hint-placeholder-count="5">
+        <a href="Detay.dc.html" aria-label="{{p.name}}" style="position: absolute; left: {{p.x}}; top: {{p.y}}; width: 44px; height: 54px; display: flex; flex-direction: column; align-items: center; text-decoration: none">
+          <span style="width: 34px; height: 34px; border-radius: 50%; background: {{p.color}}; border: 3px solid #FFFFFF; box-shadow: 0 5px 12px {{p.glow}}; display: flex; align-items: center; justify-content: center; box-sizing: border-box">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{p.icon}}"></path></svg>
+          </span>
+          <span style="width: 8px; height: 8px; margin-top: 2px; border-radius: 50%; background: {{p.glow}}"></span>
+        </a>
+      </sc-for>
+      <a href="Detay.dc.html" style="position: absolute; left: 34px; top: 22px; background: #FFFFFF; border-radius: 12px; padding: 7px 12px 7px 10px; box-shadow: 0 6px 14px rgba(30,26,36,0.1); display: flex; flex-direction: column; text-decoration: none; color: #1E1A24">
+        <span style="font-size: 12px; font-weight: 700">[Örnek] Caz gecesi</span>
+        <span style="font-size: 11px; font-weight: 700; color: #1F9D57">21:00 · Ücretsiz</span>
+      </a>
+      <div style="position: absolute; right: 10px; top: 10px; display: flex; flex-direction: column; gap: 10px">
+        <span style="background: #FFFFFF; border-radius: 18px; padding: 8px 12px; box-shadow: 0 8px 20px rgba(240,101,78,0.22); display: flex; flex-direction: column; align-items: center">
+          <span style="font-family: Oswald, sans-serif; font-weight: 700; font-size: 24px; line-height: 1.05; color: #F0654E">5</span>
+          <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.8px; color: #6B6475">KM</span>
+        </span>
+        <span style="background: #FFFFFF; border-radius: 18px; padding: 8px 12px; box-shadow: 0 8px 20px rgba(240,101,78,0.22); display: flex; flex-direction: column; align-items: center">
+          <span style="font-family: Oswald, sans-serif; font-weight: 700; font-size: 24px; line-height: 1.05; color: #F0654E">{{count}}</span>
+          <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.8px; color: #6B6475">ETKİNLİK</span>
+        </span>
+      </div>
+      <a href="Arama.dc.html" style="position: absolute; left: 12px; bottom: 12px; background: #1E1A24; color: #FFFFFF; border-radius: 999px; padding: 8px 12px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px; text-decoration: none">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="#FFFFFF" aria-hidden="true"><path d="M21 3 3 10.5l7.5 3L13.5 21z"></path></svg>Yakınımda bu akşam</a>
+    </div>
+
+    <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: 10px">
+      <h2 style="margin: 0; font-family: Oswald, sans-serif; font-weight: 600; font-size: 22px; line-height: 1.05">BU AKŞAM <span style="color: #F0654E">SANA ÖZEL</span></h2>
+      <a href="Arama.dc.html" style="font-size: 12px; font-weight: 800; letter-spacing: 0.8px; text-decoration: none; color: #DD4D3A">TÜMÜ ›</a>
+    </div>
+
+    <sc-for list="{{events}}" as="e" hint-placeholder-count="3">
+      <a href="Detay.dc.html" style="display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 28px; background: rgba(255,255,255,0.62); border: 1.2px solid rgba(255,255,255,0.8); box-shadow: 0 14px 30px rgba(176,112,138,0.12); backdrop-filter: blur(18px); text-decoration: none; color: #1E1A24">
+        <span style="width: 56px; height: 56px; border-radius: 18px; background: {{e.soft}}; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="{{e.color}}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{e.icon}}"></path></svg>
+        </span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px">
+          <span style="font-size: 15px; font-weight: 700">{{e.title}}</span>
+          <span style="font-size: 12px; color: #6B6475">{{e.meta}}</span>
+        </span>
+        <span style="font-size: 11px; font-weight: 800; border-radius: 999px; padding: 4px 10px; background: {{e.bg}}; color: {{e.fg}}; border: 1.2px {{e.line}} {{e.border}}; white-space: nowrap">{{e.price}}</span>
+      </a>
+    </sc-for>
+  </div>
+
+  <nav aria-label="Ana menü" style="position: absolute; left: 20px; right: 20px; bottom: 16px; height: 66px; padding: 0 8px; border-radius: 999px; background: linear-gradient(90deg, #F7836A, #DD4D3A); box-shadow: 0 10px 24px rgba(240,101,78,0.4); display: flex; align-items: center; justify-content: space-evenly; box-sizing: border-box">
+    <a href="Harita.dc.html" aria-current="page" style="display: flex; align-items: center; gap: 8px; padding: 12px 18px; border-radius: 999px; background: #FFFFFF; color: #DD4D3A; font-size: 14px; font-weight: 700; text-decoration: none">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15 5.1 9 3 3 5v16l6-2 6 2 6-2V3z"></path></svg>Ana sayfa</a>
+    <a href="Kayitli.dc.html" aria-label="Kayıtlı" style="display: flex; align-items: center; padding: 12px 14px; color: #FFFFFF">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21s-7.5-4.6-7.5-10.5A4.5 4.5 0 0 1 12 7.3a4.5 4.5 0 0 1 7.5 3.2C19.5 16.4 12 21 12 21z"></path></svg></a>
+    <a href="Profil.dc.html" aria-label="Profil" style="display: flex; align-items: center; padding: 12px 14px; color: #FFFFFF">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4.5"></circle><path d="M3.5 21c0-4.4 3.8-7 8.5-7s8.5 2.6 8.5 7z"></path></svg></a>
+  </nav>
+</div>
+</template>
+<template id="tpl-Detay">
+<style>#screen.s-Detay a{color:#DD4D3A}#screen.s-Detay a:hover{color:#B93A2A}</style>
+<div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; overflow: hidden; background: #F8EFF3; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #1E1A24">
+  <div aria-hidden="true" style="position: absolute; inset: 0; overflow: hidden">
+    <span style="position: absolute; left: -130px; top: -120px; width: 350px; height: 350px; border-radius: 50%; background: #C7B6F0; opacity: 0.45; filter: blur(70px)"></span>
+    <span style="position: absolute; right: -140px; top: 220px; width: 290px; height: 290px; border-radius: 50%; background: #F2A3C0; opacity: 0.4; filter: blur(70px)"></span>
+    <span style="position: absolute; left: -90px; bottom: -80px; width: 310px; height: 310px; border-radius: 50%; background: #FFC7A6; opacity: 0.4; filter: blur(70px)"></span>
+  </div>
+
+  <div style="position: absolute; inset: 0; overflow-y: auto; padding: 12px 20px 110px; display: flex; flex-direction: column; gap: 16px; box-sizing: border-box">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <a href="Harita.dc.html" aria-label="Geri" style="width: 46px; height: 46px; border-radius: 50%; background: rgba(255,255,255,0.8); border: 1.2px solid #FFFFFF; display: flex; align-items: center; justify-content: center; color: #1E1A24; box-sizing: border-box">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"></path></svg>
+      </a>
+      <span style="margin-left: auto; display: flex; align-items: center; gap: 6px; padding: 9px 14px; border-radius: 999px; background: rgba(255,255,255,0.8); border: 1.2px solid #FFFFFF; font-size: 13px; font-weight: 800; color: #5A3FD0">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13M9 18a3 3 0 1 1-6 0a3 3 0 1 1 6 0M21 16a3 3 0 1 1-6 0a3 3 0 1 1 6 0"></path></svg>Konser</span>
+    </div>
+
+    <div style="height: 200px; flex-shrink: 0; border-radius: 32px; border: 5px solid #FFFFFF; background: linear-gradient(135deg, #9C84F5, #7B5CF0); position: relative; overflow: hidden; box-shadow: 0 14px 30px rgba(123,92,240,0.28); box-sizing: border-box; display: flex; align-items: center; justify-content: center">
+      <span aria-hidden="true" style="position: absolute; left: -30px; bottom: -40px; width: 160px; height: 160px; border-radius: 50%; background: rgba(255,255,255,0.14)"></span>
+      <span aria-hidden="true" style="position: absolute; right: 30px; top: -30px; width: 110px; height: 110px; border-radius: 50%; background: rgba(255,255,255,0.12)"></span>
+      <svg width="74" height="74" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13M9 18a3 3 0 1 1-6 0a3 3 0 1 1 6 0M21 16a3 3 0 1 1-6 0a3 3 0 1 1 6 0"></path></svg>
+      <span style="position: absolute; left: 12px; top: 12px; background: rgba(255,255,255,0.9); border-radius: 999px; padding: 5px 10px; font-size: 11px; font-weight: 700">Örnek görsel</span>
+      <div style="position: absolute; right: 12px; bottom: 12px; background: #FFFFFF; border-radius: 18px; padding: 8px 12px; box-shadow: 0 8px 20px rgba(123,92,240,0.25); display: flex; flex-direction: column; align-items: center">
+        <span style="font-family: Oswald, sans-serif; font-weight: 700; font-size: 24px; line-height: 1.05; color: #7B5CF0">1,2</span>
+        <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.8px; color: #6B6475">KM</span>
+      </div>
+    </div>
+
+    <h1 style="margin: 0; font-family: Oswald, sans-serif; font-weight: 600; font-size: 34px; line-height: 1.05; letter-spacing: 0.2px">[ÖRNEK] AKŞAM <span style="color: #7B5CF0">CAZ KONSERİ</span></h1>
+
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+      <div style="padding: 14px; border-radius: 24px; background: rgba(255,255,255,0.62); border: 1.2px solid rgba(255,255,255,0.8); box-shadow: 0 14px 30px rgba(176,112,138,0.12); display: flex; flex-direction: column; gap: 4px">
+        <span style="font-size: 10px; font-weight: 700; letter-spacing: 1.2px; color: #6B6475">NE ZAMAN</span>
+        <span style="font-family: Oswald, sans-serif; font-weight: 600; font-size: 20px; line-height: 1.05">CMT 8 KASIM</span>
+        <span style="font-size: 12px; color: #6B6475">20:30–23:00</span>
+      </div>
+      <div style="padding: 14px; border-radius: 24px; background: rgba(255,255,255,0.62); border: 1.2px solid rgba(255,255,255,0.8); box-shadow: 0 14px 30px rgba(176,112,138,0.12); display: flex; flex-direction: column; gap: 4px">
+        <span style="font-size: 10px; font-weight: 700; letter-spacing: 1.2px; color: #6B6475">NEREDE</span>
+        <span style="font-family: Oswald, sans-serif; font-weight: 600; font-size: 20px; line-height: 1.05">KÜLTÜRPARK</span>
+        <span style="font-size: 12px; color: #6B6475">Açıkhava Tiyatrosu, Konak</span>
+      </div>
+    </div>
+
+    <section aria-label="Fiyat" style="padding: 16px; border-radius: 28px; background: rgba(255,255,255,0.62); border: 1.2px solid rgba(255,255,255,0.8); box-shadow: 0 14px 30px rgba(176,112,138,0.12); display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; align-items: center; justify-content: space-between">
+        <span style="font-family: Oswald, sans-serif; font-weight: 700; font-size: 30px; line-height: 1.05">{{price}}</span>
+        <span style="font-size: 12px; font-weight: 800; border-radius: 999px; padding: 5px 12px; background: {{badgeBg}}; color: {{badgeFg}}; border: 1.2px {{badgeLine}} {{badgeBorder}}">{{badge}}</span>
+      </div>
+      <p style="margin: 0; font-size: 13px; line-height: 1.45; color: #6B6475">{{priceNote}}</p>
+      <div role="group" aria-label="Rozet örneği" style="display: flex; gap: 8px; flex-wrap: wrap">
+        <sc-for list="{{variants}}" as="v" hint-placeholder-count="3">
+          <button type="button" onClick="{{v.pick}}" aria-pressed="{{v.on}}" style="padding: 9px 14px; border-radius: 999px; border: 1.2px solid {{v.border}}; background: {{v.bg}}; color: {{v.fg}}; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer">{{v.label}}</button>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="padding: 8px 16px; border-radius: 28px; background: rgba(255,255,255,0.62); border: 1.2px solid rgba(255,255,255,0.8); box-shadow: 0 14px 30px rgba(176,112,138,0.12); display: flex; flex-direction: column">
+      <span style="font-size: 11px; font-weight: 700; letter-spacing: 1.2px; color: #6B6475; padding: 8px 0 4px">3 KAYNAKTAN BİRLEŞTİRİLDİ</span>
+      <sc-for list="{{sources}}" as="s" hint-placeholder-count="3">
+        <a href="https://example.com" style="display: flex; align-items: center; gap: 12px; min-height: 52px; border-top: 1px solid #EDE2E8; text-decoration: none; color: #1E1A24">
+          <span style="width: 34px; height: 34px; border-radius: 12px; background: {{s.soft}}; color: {{s.color}}; font-family: Oswald, sans-serif; font-weight: 700; font-size: 15px; display: flex; align-items: center; justify-content: center">{{s.letter}}</span>
+          <span style="flex: 1; font-size: 13px; font-weight: 600">{{s.name}}</span>
+          <span style="font-size: 11px; font-weight: 700; color: #6B6475">{{s.meta}} ↗</span>
+        </a>
+      </sc-for>
+    </section>
+
+    <div style="display: flex; align-items: center; gap: 10px">
+      <span style="display: flex">
+        <sc-for list="{{savers}}" as="a" hint-placeholder-count="4">
+          <span style="width: 32px; height: 32px; margin-right: -8px; border-radius: 50%; border: 2px solid #FFFFFF; background: {{a.bg}}; color: #FFFFFF; font-family: Oswald, sans-serif; font-weight: 700; font-size: 12px; display: flex; align-items: center; justify-content: center; box-sizing: border-box">{{a.initials}}</span>
+        </sc-for>
+      </span>
+      <span style="font-size: 13px; font-weight: 600; color: #6B6475; margin-left: 10px">12 kişi kaydetti</span>
+    </div>
+  </div>
+
+  <div style="position: absolute; left: 20px; right: 20px; bottom: 16px; display: flex; gap: 12px">
+    <button type="button" onClick="{{toggleSave}}" aria-pressed="{{savedAria}}" style="flex: 1; height: 58px; border-radius: 999px; border: 0; background: {{saveBg}}; box-shadow: 0 10px 22px rgba(240,101,78,0.38); color: {{saveFg}}; font: inherit; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer">
+      {{saveLabel}}
+      <span style="width: 28px; height: 28px; border-radius: 50%; background: {{saveIconBg}}; display: flex; align-items: center; justify-content: center">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21s-7.5-4.6-7.5-10.5A4.5 4.5 0 0 1 12 7.3a4.5 4.5 0 0 1 7.5 3.2C19.5 16.4 12 21 12 21z"></path></svg>
+      </span>
+    </button>
+    <a href="Kayitli.dc.html" aria-label="Kayıtlılarım" style="width: 58px; height: 58px; border-radius: 50%; background: #1E1A24; color: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 14px rgba(30,26,36,0.3)">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"></path></svg>
+    </a>
+  </div>
+</div>
+</template>
+<template id="tpl-Arama">
+<style>#screen.s-Arama a{color:#DD4D3A}#screen.s-Arama a:hover{color:#B93A2A}</style>
+<div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; overflow: hidden; background: #F8EFF3; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #1E1A24">
+  <div aria-hidden="true" style="position: absolute; inset: 0; overflow: hidden">
+    <span style="position: absolute; left: -130px; top: -120px; width: 350px; height: 350px; border-radius: 50%; background: #F2A3C0; opacity: 0.4; filter: blur(70px)"></span>
+    <span style="position: absolute; right: -140px; top: 200px; width: 290px; height: 290px; border-radius: 50%; background: #FFC7A6; opacity: 0.4; filter: blur(70px)"></span>
+    <span style="position: absolute; left: -90px; bottom: -80px; width: 310px; height: 310px; border-radius: 50%; background: #C7B6F0; opacity: 0.4; filter: blur(70px)"></span>
+  </div>
+
+  <div style="position: absolute; inset: 0; overflow-y: auto; padding: 12px 20px 120px; display: flex; flex-direction: column; gap: 16px; box-sizing: border-box">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <a href="Harita.dc.html" aria-label="Geri" style="width: 46px; height: 46px; border-radius: 50%; background: rgba(255,255,255,0.8); border: 1.2px solid #FFFFFF; display: flex; align-items: center; justify-content: center; color: #1E1A24; box-sizing: border-box; flex-shrink: 0">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"></path></svg>
+      </a>
+      <label style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 6px 6px 6px 16px; border-radius: 999px; background: rgba(255,255,255,0.85); border: 1.6px solid #F0654E">
+        <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Etkinlik ara</span>
+        <input type="search" value="Bu akşam yakınımdaki ücretsiz konserler" style="flex: 1; min-width: 0; border: 0; background: transparent; font: inherit; font-size: 14px; color: #1E1A24; outline: none">
+        <span style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(90deg, #F7836A, #DD4D3A); display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m20 20-4-4"></path></svg>
+        </span>
+      </label>
+    </div>
+
+    <h1 style="margin: 0; font-family: Oswald, sans-serif; font-weight: 600; font-size: 30px; line-height: 1.05; letter-spacing: 0.2px">4 ETKİNLİK <span style="color: #F0654E">BULDUM</span></h1>
+
+    <div style="padding: 16px; border-radius: 28px; background: rgba(255,255,255,0.62); border: 1.2px solid rgba(255,255,255,0.8); box-shadow: 0 14px 30px rgba(176,112,138,0.12); backdrop-filter: blur(18px); display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="width: 36px; height: 36px; border-radius: 12px; background: #FDE5DF; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#F0654E" aria-hidden="true"><path d="M10 3l1.8 5.2L17 10l-5.2 1.8L10 17l-1.8-5.2L3 10l5.2-1.8zM18 14l.9 2.1L21 17l-2.1.9L18 20l-.9-2.1L15 17l2.1-.9z"></path></svg>
+        </span>
+        <span style="flex: 1; font-size: 11px; font-weight: 700; letter-spacing: 1.2px; color: #6B6475">AI ŞÖYLE ANLADI</span>
+        <button type="button" style="background: none; border: 0; font: inherit; font-size: 13px; font-weight: 700; color: #DD4D3A; min-height: 36px; cursor: pointer">Düzenle</button>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px">
+        <span style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px 6px 6px; border-radius: 999px; background: #7B5CF0; color: #FFFFFF; font-size: 13px; font-weight: 700; box-shadow: 0 6px 14px rgba(123,92,240,0.35)">
+          <span style="width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13M9 18a3 3 0 1 1-6 0a3 3 0 1 1 6 0M21 16a3 3 0 1 1-6 0a3 3 0 1 1 6 0"></path></svg>
+          </span>Konser</span>
+        <sc-for list="{{filters}}" as="f" hint-placeholder-count="3">
+          <span style="display: inline-flex; align-items: center; padding: 10px 16px; border-radius: 999px; background: #1E1A24; color: #FFFFFF; font-size: 13px; font-weight: 700">{{f}}</span>
+        </sc-for>
+      </div>
+    </div>
+
+    <div role="group" aria-label="Görünüm" style="display: flex; gap: 8px">
+      <sc-for list="{{views}}" as="v" hint-placeholder-count="2">
+        <button type="button" onClick="{{v.pick}}" aria-pressed="{{v.on}}" style="padding: 10px 18px; border-radius: 999px; border: 1.2px solid {{v.border}}; background: {{v.bg}}; color: {{v.fg}}; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer">{{v.label}}</button>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{isList}}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <sc-for list="{{results}}" as="r" hint-placeholder-count="4">
+          <a href="Detay.dc.html" style="display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 28px; background: rgba(255,255,255,0.62); border: 1.2px solid rgba(255,255,255,0.8); box-shadow: 0 14px 30px rgba(176,112,138,0.12); text-decoration: none; color: #1E1A24">
+            <span style="width: 56px; height: 56px; border-radius: 18px; background: #ECE7FE; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#7B5CF0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13M9 18a3 3 0 1 1-6 0a3 3 0 1 1 6 0M21 16a3 3 0 1 1-6 0a3 3 0 1 1 6 0"></path></svg>
+            </span>
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px">
+              <span style="font-size: 15px; font-weight: 700">{{r.title}}</span>
+              <span style="font-size: 12px; color: #6B6475">{{r.meta}}</span>
+            </span>
+            <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px">
+              <span style="font-size: 11px; font-weight: 800; border-radius: 999px; padding: 4px 10px; background: #DDF3E6; color: #146C3C">Ücretsiz</span>
+              <span style="font-family: Oswald, sans-serif; font-weight: 600; font-size: 15px; color: #F0654E">{{r.dist}}</span>
+            </span>
+          </a>
+        </sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{isMap}}" hint-placeholder-val="{{ false }}">
+      <div style="height: 380px; flex-shrink: 0; border-radius: 32px; border: 5px solid #FFFFFF; background: #F4EEEA; position: relative; overflow: hidden; box-shadow: 0 14px 30px rgba(240,101,78,0.18); box-sizing: border-box">
+        <svg width="100%" height="100%" viewBox="0 0 340 370" preserveAspectRatio="none" style="position: absolute; inset: 0" aria-hidden="true">
+          <path d="M0 0 H143 C136 74 88 104 102 170 C112 222 61 259 34 370 H0 Z" fill="#CFE3F7"></path>
+          <rect x="156" y="148" width="54" height="59" rx="14" fill="#D9EED3"></rect>
+          <path d="M136 -10 C122 111 143 204 102 380" stroke="#FFFFFF" stroke-width="7" fill="none" stroke-linecap="round"></path>
+          <path d="M116 67 L350 89 M116 178 L350 200 M116 274 L350 296" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"></path>
+          <path d="M177 -10 L156 380 M238 -10 L218 380 M299 -10 L279 380" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"></path>
+          <circle cx="190" cy="180" r="120" fill="#F0654E" fill-opacity="0.08" stroke="#F0654E" stroke-width="2" stroke-dasharray="6 6"></circle>
+          <circle cx="190" cy="180" r="9" fill="#3B9EF5" stroke="#FFFFFF" stroke-width="3"></circle>
+        </svg>
+        <sc-for list="{{results}}" as="r" hint-placeholder-count="4">
+          <a href="Detay.dc.html" aria-label="{{r.title}}" style="position: absolute; left: {{r.x}}; top: {{r.y}}; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center">
+            <span style="width: 34px; height: 34px; border-radius: 50%; background: #7B5CF0; border: 3px solid #FFFFFF; box-shadow: 0 5px 12px rgba(123,92,240,0.45); display: flex; align-items: center; justify-content: center; box-sizing: border-box">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13M9 18a3 3 0 1 1-6 0a3 3 0 1 1 6 0M21 16a3 3 0 1 1-6 0a3 3 0 1 1 6 0"></path></svg>
+            </span>
+          </a>
+        </sc-for>
+        <span style="position: absolute; left: 12px; bottom: 12px; background: #1E1A24; color: #FFFFFF; border-radius: 999px; padding: 8px 12px; font-size: 12px; font-weight: 600">Mavi nokta: sen · 3 km</span>
+      </div>
+    </sc-if>
+    <p style="margin: 0; font-size: 12px; color: #6B6475; text-align: center">Konumun yalnızca bu arama için kullanıldı, saklanmadı.</p>
+  </div>
+
+  <nav aria-label="Ana menü" style="position: absolute; left: 20px; right: 20px; bottom: 16px; height: 66px; padding: 0 8px; border-radius: 999px; background: linear-gradient(90deg, #F7836A, #DD4D3A); box-shadow: 0 10px 24px rgba(240,101,78,0.4); display: flex; align-items: center; justify-content: space-evenly; box-sizing: border-box">
+    <a href="Harita.dc.html" aria-current="page" style="display: flex; align-items: center; gap: 8px; padding: 12px 18px; border-radius: 999px; background: #FFFFFF; color: #DD4D3A; font-size: 14px; font-weight: 700; text-decoration: none">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15 5.1 9 3 3 5v16l6-2 6 2 6-2V3z"></path></svg>Ana sayfa</a>
+    <a href="Kayitli.dc.html" aria-label="Kayıtlı" style="display: flex; align-items: center; padding: 12px 14px; color: #FFFFFF">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21s-7.5-4.6-7.5-10.5A4.5 4.5 0 0 1 12 7.3a4.5 4.5 0 0 1 7.5 3.2C19.5 16.4 12 21 12 21z"></path></svg></a>
+    <a href="Profil.dc.html" aria-label="Profil" style="display: flex; align-items: center; padding: 12px 14px; color: #FFFFFF">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4.5"></circle><path d="M3.5 21c0-4.4 3.8-7 8.5-7s8.5 2.6 8.5 7z"></path></svg></a>
+  </nav>
+</div>
+</template>
+<template id="tpl-Kayitli">
+<style>#screen.s-Kayitli a{color:#DD4D3A}#screen.s-Kayitli a:hover{color:#B93A2A}</style>
+<div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; overflow: hidden; background: #F8EFF3; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #1E1A24">
+  <div aria-hidden="true" style="position: absolute; inset: 0; overflow: hidden">
+    <span style="position: absolute; left: -130px; top: -120px; width: 350px; height: 350px; border-radius: 50%; background: #F2A3C0; opacity: 0.4; filter: blur(70px)"></span>
+    <span style="position: absolute; right: -140px; top: 200px; width: 290px; height: 290px; border-radius: 50%; background: #FFC7A6; opacity: 0.4; filter: blur(70px)"></span>
+    <span style="position: absolute; left: -90px; bottom: -80px; width: 310px; height: 310px; border-radius: 50%; background: #C7B6F0; opacity: 0.4; filter: blur(70px)"></span>
+  </div>
+
+  <div style="position: absolute; inset: 0; overflow-y: auto; padding: 20px 20px 120px; display: flex; flex-direction: column; gap: 16px; box-sizing: border-box">
+    <h1 style="margin: 0; font-family: Oswald, sans-serif; font-weight: 600; font-size: 40px; line-height: 1.05; letter-spacing: 0.2px">KAYITLI <span style="color: #F0654E">ETKİNLİKLERİN</span></h1>
+    <div style="display: flex; gap: 10px">
+      <span style="flex: 1; background: #FFFFFF; border-radius: 18px; padding: 10px 12px; box-shadow: 0 8px 20px rgba(240,101,78,0.18); display: flex; flex-direction: column; align-items: center">
+        <span style="font-family: Oswald, sans-serif; font-weight: 700; font-size: 26px; line-height: 1.05; color: #F0654E">{{count}}</span>
+        <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.8px; color: #6B6475">YAKLAŞAN</span>
+      </span>
+      <span style="flex: 1; background: #FFFFFF; border-radius: 18px; padding: 10px 12px; box-shadow: 0 8px 20px rgba(123,92,240,0.18); display: flex; flex-direction: column; align-items: center">
+        <span style="font-family: Oswald, sans-serif; font-weight: 700; font-size: 26px; line-height: 1.05; color: #7B5CF0">2</span>
+        <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.8px; color: #6B6475">BU HAFTA</span>
+      </span>
+      <span style="flex: 1; background: #FFFFFF; border-radius: 18px; padding: 10px 12px; box-shadow: 0 8px 20px rgba(31,157,87,0.18); display: flex; flex-direction: column; align-items: center">
+        <span style="font-family: Oswald, sans-serif; font-weight: 700; font-size: 26px; line-height: 1.05; color: #1F9D57">1</span>
+        <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.8px; color: #6B6475">ÜCRETSİZ</span>
+      </span>
+    </div>
+
+    <div role="group" aria-label="Zaman" style="display: flex; gap: 8px">
+      <button type="button" aria-pressed="true" style="padding: 10px 18px; border-radius: 999px; border: 1.2px solid #1E1A24; background: #1E1A24; color: #FFFFFF; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer">Yaklaşan</button>
+      <button type="button" aria-pressed="false" style="padding: 10px 18px; border-radius: 999px; border: 1.2px solid #FFFFFF; background: rgba(255,255,255,0.75); color: #1E1A24; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer">Geçmiş</button>
+    </div>
+
+    <sc-for list="{{items}}" as="it" hint-placeholder-count="3">
+      <div style="display: flex; align-items: center; gap: 14px; padding: 12px; border-radius: 28px; background: rgba(255,255,255,0.62); border: 1.2px solid rgba(255,255,255,0.8); box-shadow: 0 14px 30px rgba(176,112,138,0.12)">
+        <span style="width: 60px; height: 66px; border-radius: 20px; background: {{it.color}}; color: #FFFFFF; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 6px 14px {{it.glow}}">
+          <span style="font-size: 10px; font-weight: 800; letter-spacing: 0.8px">KAS</span>
+          <span style="font-family: Oswald, sans-serif; font-weight: 700; font-size: 26px; line-height: 1">{{it.day}}</span>
+        </span>
+        <a href="Detay.dc.html" style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; text-decoration: none; color: #1E1A24">
+          <span style="font-size: 15px; font-weight: 700">{{it.title}}</span>
+          <span style="font-size: 12px; color: #6B6475">{{it.meta}}</span>
+          <span style="align-self: flex-start; font-size: 11px; font-weight: 800; border-radius: 999px; padding: 3px 10px; background: {{it.bg}}; color: {{it.fg}}; border: 1.2px {{it.line}} {{it.border}}">{{it.price}}</span>
+        </a>
+        <button type="button" onClick="{{it.remove}}" aria-label="Kayıtlılardan çıkar" style="width: 44px; height: 44px; border-radius: 50%; border: 0; background: #FDE5DF; color: #F0654E; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21s-7.5-4.6-7.5-10.5A4.5 4.5 0 0 1 12 7.3a4.5 4.5 0 0 1 7.5 3.2C19.5 16.4 12 21 12 21z"></path></svg>
+        </button>
+      </div>
+    </sc-for>
+
+    <sc-if value="{{empty}}" hint-placeholder-val="{{ false }}">
+      <div style="padding: 24px 20px; border-radius: 28px; background: rgba(255,255,255,0.62); border: 1.2px solid rgba(255,255,255,0.8); box-shadow: 0 14px 30px rgba(176,112,138,0.12); display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center">
+        <span style="width: 64px; height: 64px; border-radius: 22px; background: #FDE5DF; display: flex; align-items: center; justify-content: center">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="#F0654E" aria-hidden="true"><path d="M12 21s-7.5-4.6-7.5-10.5A4.5 4.5 0 0 1 12 7.3a4.5 4.5 0 0 1 7.5 3.2C19.5 16.4 12 21 12 21z"></path></svg>
+        </span>
+        <span style="font-family: Oswald, sans-serif; font-weight: 600; font-size: 22px">HENÜZ KAYIT YOK</span>
+        <span style="font-size: 14px; line-height: 1.45; color: #6B6475">Haritada beğendiğin etkinliği kaydet, burada görünsün.</span>
+        <a href="Harita.dc.html" style="height: 52px; padding: 0 24px; border-radius: 999px; background: linear-gradient(90deg, #F7836A, #DD4D3A); box-shadow: 0 10px 22px rgba(240,101,78,0.38); color: #FFFFFF; font-weight: 700; font-size: 15px; display: flex; align-items: center; text-decoration: none">Haritaya git</a>
+        <button type="button" onClick="{{reset}}" style="background: none; border: 0; font: inherit; font-size: 12px; font-weight: 700; color: #6B6475; text-decoration: underline; min-height: 32px; cursor: pointer">Örnek listeyi geri getir</button>
+      </div>
+    </sc-if>
+  </div>
+
+  <nav aria-label="Ana menü" style="position: absolute; left: 20px; right: 20px; bottom: 16px; height: 66px; padding: 0 8px; border-radius: 999px; background: linear-gradient(90deg, #F7836A, #DD4D3A); box-shadow: 0 10px 24px rgba(240,101,78,0.4); display: flex; align-items: center; justify-content: space-evenly; box-sizing: border-box">
+    <a href="Harita.dc.html" aria-label="Ana sayfa" style="display: flex; align-items: center; padding: 12px 14px; color: #FFFFFF">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15 5.1 9 3 3 5v16l6-2 6 2 6-2V3z"></path></svg></a>
+    <a href="Kayitli.dc.html" aria-current="page" style="display: flex; align-items: center; gap: 8px; padding: 12px 18px; border-radius: 999px; background: #FFFFFF; color: #DD4D3A; font-size: 14px; font-weight: 700; text-decoration: none">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21s-7.5-4.6-7.5-10.5A4.5 4.5 0 0 1 12 7.3a4.5 4.5 0 0 1 7.5 3.2C19.5 16.4 12 21 12 21z"></path></svg>Kayıtlı</a>
+    <a href="Profil.dc.html" aria-label="Profil" style="display: flex; align-items: center; padding: 12px 14px; color: #FFFFFF">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4.5"></circle><path d="M3.5 21c0-4.4 3.8-7 8.5-7s8.5 2.6 8.5 7z"></path></svg></a>
+  </nav>
+</div>
+</template>
+<template id="tpl-Paylasim">
+<style>#screen.s-Paylasim a{color:#DD4D3A}#screen.s-Paylasim a:hover{color:#B93A2A}</style>
+<div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; overflow: hidden; background: #F8EFF3; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #1E1A24">
+  <div aria-hidden="true" style="position: absolute; inset: 0; overflow: hidden">
+    <span style="position: absolute; left: -130px; top: -120px; width: 350px; height: 350px; border-radius: 50%; background: #F2A3C0; opacity: 0.5; filter: blur(70px)"></span>
+    <span style="position: absolute; right: -140px; top: 200px; width: 290px; height: 290px; border-radius: 50%; background: #FFC7A6; opacity: 0.5; filter: blur(70px)"></span>
+    <span style="position: absolute; left: -90px; bottom: -80px; width: 310px; height: 310px; border-radius: 50%; background: #C7B6F0; opacity: 0.5; filter: blur(70px)"></span>
+  </div>
+
+  <div style="position: absolute; inset: 0; overflow-y: auto; padding: 8px 20px 32px; display: flex; flex-direction: column; gap: 16px; box-sizing: border-box">
+    <div style="display: flex; align-items: center; justify-content: space-between">
+      <a href="Harita.dc.html" aria-label="Kapat" style="width: 46px; height: 46px; border-radius: 50%; background: rgba(255,255,255,0.8); border: 1.2px solid #FFFFFF; display: flex; align-items: center; justify-content: center; color: #1E1A24; box-sizing: border-box">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+      </a>
+      <span style="display: flex; align-items: center; gap: 6px; padding: 9px 14px; border-radius: 999px; background: rgba(255,255,255,0.8); border: 1.2px solid #FFFFFF; font-size: 13px; font-weight: 800; color: #DD4D3A">Adım {{step}} / 3</span>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+      <sc-for list="{{bars}}" as="b" hint-placeholder-count="3">
+        <span style="height: 6px; border-radius: 9px; background: {{b}}"></span>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{isStep1}}" hint-placeholder-val="{{ true }}">
+      <h1 style="margin: 0; font-family: Oswald, sans-serif; font-weight: 600; font-size: 38px; line-height: 1.05; letter-spacing: 0.2px">PAYLAŞIMDAN <span style="color: #F0654E">ETKİNLİK</span></h1>
+      <p style="margin: 0; font-size: 15px; line-height: 1.5; color: #6B6475">Instagram'da Paylaş → Event Map seçtin. Gönderiyi okuyoruz.</p>
+      <div style="border-radius: 28px; overflow: hidden; background: rgba(255,255,255,0.62); border: 1.2px solid rgba(255,255,255,0.8); box-shadow: 0 14px 30px rgba(176,112,138,0.12)">
+        <div style="padding: 12px 14px; display: flex; align-items: center; gap: 10px">
+          <span style="width: 36px; height: 36px; border-radius: 50%; padding: 2px; background: conic-gradient(#E85C9C, #F6A723, #7B5CF0, #E85C9C); box-sizing: border-box">
+            <span style="width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, #F2A3C0, #E85C9C); border: 2px solid #FFFFFF; color: #FFFFFF; font-family: Oswald, sans-serif; font-weight: 700; font-size: 12px; display: flex; align-items: center; justify-content: center; box-sizing: border-box">ÖM</span>
+          </span>
+          <span style="display: flex; flex-direction: column">
+            <span style="font-size: 13px; font-weight: 700">@ornek_mekan</span>
+            <span style="font-size: 11px; color: #6B6475">instagram.com/p/ORNEK123</span>
+          </span>
+        </div>
+        <div style="height: 220px; background: linear-gradient(135deg, #F7836A, #E85C9C); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: #FFFFFF; position: relative; overflow: hidden">
+          <span aria-hidden="true" style="position: absolute; right: -30px; top: -30px; width: 140px; height: 140px; border-radius: 50%; background: rgba(255,255,255,0.14)"></span>
+          <span style="font-family: Oswald, sans-serif; font-weight: 700; font-size: 34px; line-height: 1">AKUSTİK GECE</span>
+          <span style="font-size: 13px; font-weight: 700">Cumartesi · 21:00 · Alsancak</span>
+          <span style="font-size: 11px; font-weight: 600; background: rgba(255,255,255,0.25); border-radius: 999px; padding: 4px 10px">Örnek afiş</span>
+        </div>
+        <p style="margin: 0; padding: 12px 14px; font-size: 13px; line-height: 1.45; color: #6B6475">"Bu cumartesi akustik gece! Giriş ücretsiz…" (örnek açıklama)</p>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 24px; background: rgba(255,255,255,0.62); border: 1.2px solid rgba(255,255,255,0.8)">
+        <span style="width: 22px; height: 22px; border-radius: 50%; border: 3px solid #FDE5DF; border-top-color: #F0654E; box-sizing: border-box; flex-shrink: 0"></span>
+        <span style="font-size: 14px; font-weight: 600">AI etkinlik bilgilerini çıkarıyor…</span>
+      </div>
+      <button type="button" onClick="{{toStep2}}" style="height: 58px; border-radius: 999px; border: 0; background: linear-gradient(90deg, #F7836A, #DD4D3A); box-shadow: 0 10px 22px rgba(240,101,78,0.38); color: #FFFFFF; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer">Devam</button>
+    </sc-if>
+
+    <sc-if value="{{isStep2}}" hint-placeholder-val="{{ false }}">
+      <h1 style="margin: 0; font-family: Oswald, sans-serif; font-weight: 600; font-size: 38px; line-height: 1.05; letter-spacing: 0.2px">BİLGİLERİ <span style="color: #F0654E">KONTROL ET</span></h1>
+      <p style="margin: 0; font-size: 14px; line-height: 1.5; color: #6B6475">Alanları AI doldurdu, gerekirse düzelt. Görseldeki kişiler saklanmaz, yalnızca metin kaydedilir.</p>
+      <div style="padding: 16px; border-radius: 28px; background: rgba(255,255,255,0.62); border: 1.2px solid rgba(255,255,255,0.8); box-shadow: 0 14px 30px rgba(176,112,138,0.12); display: flex; flex-direction: column; gap: 12px">
+        <sc-for list="{{fields}}" as="f" hint-placeholder-count="4">
+          <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: #6B6475">
+            <span style="display: flex; justify-content: space-between; align-items: center">{{f.label}}<span style="font-size: 10px; font-weight: 800; letter-spacing: 0.6px; color: #DD4D3A; background: #FDE5DF; border-radius: 999px; padding: 2px 8px">AI</span></span>
+            <input type="text" value="{{f.value}}" style="height: 52px; border-radius: 18px; border: 1px solid #FFFFFF; background: rgba(255,255,255,0.85); padding: 0 16px; font: inherit; font-size: 14px; color: #1E1A24; box-sizing: border-box">
+          </label>
+        </sc-for>
+        <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 4px">
+          <span style="font-size: 14px; font-weight: 600">Fiyat: <strong>Ücretsiz</strong></span>
+          <span style="font-size: 11px; font-weight: 800; border-radius: 999px; padding: 4px 10px; background: #1E1A24; color: #FFFFFF">Listelenmiş</span>
+        </div>
+      </div>
+      <div style="height: 120px; flex-shrink: 0; border-radius: 28px; border: 5px solid #FFFFFF; background: #F4EEEA; position: relative; overflow: hidden; box-sizing: border-box">
+        <svg width="100%" height="100%" viewBox="0 0 340 110" preserveAspectRatio="none" style="position: absolute; inset: 0" aria-hidden="true">
+          <path d="M0 0 H110 C100 40 60 70 30 110 H0 Z" fill="#CFE3F7"></path>
+          <path d="M120 -10 C110 40 120 70 90 120 M100 30 L350 40 M100 80 L350 90" stroke="#FFFFFF" stroke-width="5" fill="none" stroke-linecap="round"></path>
+        </svg>
+        <span style="position: absolute; left: 170px; top: 26px; width: 34px; height: 34px; border-radius: 50%; background: #E85C9C; border: 3px solid #FFFFFF; box-shadow: 0 5px 12px rgba(232,92,156,0.45); box-sizing: border-box"></span>
+        <span style="position: absolute; left: 12px; bottom: 10px; background: #1E1A24; color: #FFFFFF; border-radius: 999px; padding: 6px 10px; font-size: 11px; font-weight: 600">Pini sürükleyerek düzelt</span>
+      </div>
+      <div style="display: flex; gap: 10px">
+        <button type="button" onClick="{{toStep1}}" style="height: 58px; padding: 0 22px; border-radius: 999px; border: 1.2px solid #FFFFFF; background: rgba(255,255,255,0.85); color: #1E1A24; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer">Geri</button>
+        <button type="button" onClick="{{toStep3}}" style="flex: 1; height: 58px; border-radius: 999px; border: 0; background: linear-gradient(90deg, #F7836A, #DD4D3A); box-shadow: 0 10px 22px rgba(240,101,78,0.38); color: #FFFFFF; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer">Haritaya ekle</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isStep3}}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; padding-top: 24px">
+        <span style="width: 84px; height: 84px; border-radius: 28px; background: linear-gradient(135deg, #F7836A, #DD4D3A); box-shadow: 0 14px 26px rgba(240,101,78,0.4); display: flex; align-items: center; justify-content: center">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"></path></svg>
+        </span>
+        <h1 style="margin: 0; font-family: Oswald, sans-serif; font-weight: 600; font-size: 38px; line-height: 1.05">HARİTAYA <span style="color: #F0654E">EKLENDİ</span></h1>
+        <p style="margin: 0; font-size: 14px; line-height: 1.5; color: #6B6475">[Örnek] Akustik Gece · Cmt 21:00 · Alsancak. Aynı etkinlik başka kaynakta varsa otomatik birleştirilir.</p>
+      </div>
+      <a href="Harita.dc.html" style="height: 58px; border-radius: 999px; background: linear-gradient(90deg, #F7836A, #DD4D3A); box-shadow: 0 10px 22px rgba(240,101,78,0.38); color: #FFFFFF; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; text-decoration: none; margin-top: 12px">Haritada gör</a>
+      <button type="button" onClick="{{toStep1}}" style="background: none; border: 0; font: inherit; font-size: 13px; font-weight: 700; color: #DD4D3A; min-height: 40px; cursor: pointer">Akışı baştan göster</button>
+    </sc-if>
+  </div>
+</div>
+</template>
+<template id="tpl-Organizator">
+<style>#screen.s-Organizator a{color:#6239C2}#screen.s-Organizator a:hover{color:#4A2A9A}</style>
+<div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; overflow: hidden; background: #F8EFF3; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #1E1A24">
+  <div aria-hidden="true" style="position: absolute; inset: 0; overflow: hidden">
+    <span style="position: absolute; left: -130px; top: -120px; width: 350px; height: 350px; border-radius: 50%; background: #C7B6F0; opacity: 0.4; filter: blur(70px)"></span>
+    <span style="position: absolute; right: -140px; top: 200px; width: 290px; height: 290px; border-radius: 50%; background: #F2A3C0; opacity: 0.4; filter: blur(70px)"></span>
+    <span style="position: absolute; left: -90px; bottom: -80px; width: 310px; height: 310px; border-radius: 50%; background: #7B4FD8; opacity: 0.3; filter: blur(70px)"></span>
+  </div>
+
+  <div style="position: absolute; inset: 0; overflow-y: auto; padding: 12px 20px 120px; display: flex; flex-direction: column; gap: 18px; box-sizing: border-box">
+    <div style="display: flex; align-items: center; gap: 12px">
+      <a href="Profil.dc.html" aria-label="Profil" style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(90deg, #9466F0, #6239C2); border: 2px solid #FFFFFF; display: flex; align-items: center; justify-content: center; font-family: Oswald, sans-serif; font-weight: 700; font-size: 19px; color: #FFFFFF; text-decoration: none; box-sizing: border-box; flex-shrink: 0">ÖD</a>
+      <span style="flex: 1; display: flex; flex-direction: column">
+        <span style="font-size: 14px; font-weight: 600; color: #6B6475">Merhaba Örnek</span>
+        <span style="font-family: Oswald, sans-serif; font-weight: 600; font-size: 22px; line-height: 1.05; letter-spacing: 0.2px">ÖRNEK DERNEK <span style="color: #7B4FD8">PANELİ</span></span>
+      </span>
+    </div>
+
+    <sc-if value="{{isPanel}}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 28px; background: rgba(255,255,255,0.62); border: 1.2px solid rgba(255,255,255,0.8); box-shadow: 0 14px 30px rgba(176,112,138,0.12)">
+        <span style="width: 48px; height: 48px; border-radius: 16px; background: {{statusSoft}}; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="{{statusColor}}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{statusIcon}}"></path></svg>
+        </span>
+        <span style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+          <span style="font-family: Oswald, sans-serif; font-weight: 600; font-size: 17px; line-height: 1.05">{{statusTitle}}</span>
+          <span style="font-size: 12px; color: #6B6475">{{statusBody}}</span>
+        </span>
+        <button type="button" onClick="{{toggleApproved}}" style="background: none; border: 0; font: inherit; font-size: 11px; font-weight: 700; color: #6239C2; text-decoration: underline; min-height: 36px; cursor: pointer">durum</button>
+      </div>
+
+      <button type="button" onClick="{{openForm}}" style="height: 58px; border-radius: 999px; border: 0; background: linear-gradient(90deg, #9466F0, #6239C2); box-shadow: 0 10px 22px rgba(123,79,216,0.38); opacity: {{ctaOpacity}}; color: #FFFFFF; font: inherit; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer">
+        Etkinlik gönder
+        <span style="width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.22); display: flex; align-items: center; justify-content: center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+        </span>
+      </button>
+
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+        <sc-for list="{{stats}}" as="s" hint-placeholder-count="3">
+          <span style="padding: 16px 8px; border-radius: 24px; background: rgba(255,255,255,0.62); border: 1.2px solid rgba(255,255,255,0.8); box-shadow: 0 14px 30px rgba(176,112,138,0.12); display: flex; flex-direction: column; align-items: center; gap: 2px">
+            <span style="font-family: Oswald, sans-serif; font-weight: 700; font-size: 32px; line-height: 1.05; color: {{s.color}}">{{s.value}}</span>
+            <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.8px; color: #6B6475">{{s.label}}</span>
+          </span>
+        </sc-for>
+      </div>
+
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: 6px">
+        <h2 style="margin: 0; font-family: Oswald, sans-serif; font-weight: 600; font-size: 22px; line-height: 1.05">GÖNDERİLERİN</h2>
+        <span style="font-size: 12px; font-weight: 800; letter-spacing: 0.8px; color: #6239C2">TÜMÜ ›</span>
+      </div>
+      <sc-if value="{{justSent}}" hint-placeholder-val="{{ false }}">
+        <div style="padding: 12px 16px; border-radius: 20px; background: #FEF1D8; color: #7A4A00; font-size: 13px; font-weight: 600">Gönderildi. Admin onayından sonra haritada yayınlanacak.</div>
+      </sc-if>
+      <sc-for list="{{subs}}" as="s" hint-placeholder-count="2">
+        <div style="display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 28px; background: rgba(255,255,255,0.62); border: 1.2px solid rgba(255,255,255,0.8); box-shadow: 0 14px 30px rgba(176,112,138,0.12)">
+          <span style="width: 52px; height: 52px; border-radius: 18px; background: {{s.soft}}; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{s.color}}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{s.icon}}"></path></svg>
+          </span>
+          <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px">
+            <span style="font-size: 14px; font-weight: 700">{{s.title}}</span>
+            <span style="font-size: 12px; color: #6B6475">{{s.meta}}</span>
+          </span>
+          <span style="font-size: 11px; font-weight: 800; border-radius: 999px; padding: 4px 10px; background: {{s.bg}}; color: {{s.fg}}; white-space: nowrap">{{s.status}}</span>
+        </div>
+      </sc-for>
+    </sc-if>
+
+    <sc-if value="{{isForm}}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <button type="button" onClick="{{closeForm}}" aria-label="Panele dön" style="width: 46px; height: 46px; border-radius: 50%; background: rgba(255,255,255,0.8); border: 1.2px solid #FFFFFF; display: flex; align-items: center; justify-content: center; cursor: pointer; box-sizing: border-box">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E1A24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"></path></svg>
+        </button>
+        <h2 style="margin: 0; font-family: Oswald, sans-serif; font-weight: 600; font-size: 28px; line-height: 1.05">YENİ <span style="color: #7B4FD8">ETKİNLİK</span></h2>
+      </div>
+      <div style="padding: 16px; border-radius: 28px; background: rgba(255,255,255,0.62); border: 1.2px solid rgba(255,255,255,0.8); box-shadow: 0 14px 30px rgba(176,112,138,0.12); display: flex; flex-direction: column; gap: 12px">
+        <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: #6B6475">Etkinlik adı
+          <input type="text" placeholder="Örn. Sonbahar Şiir Akşamı" style="height: 52px; border-radius: 18px; border: 1px solid #FFFFFF; background: rgba(255,255,255,0.85); padding: 0 16px; font: inherit; font-size: 14px; color: #1E1A24; box-sizing: border-box">
+        </label>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+          <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: #6B6475">Tarih
+            <input type="text" placeholder="GG.AA.YYYY" style="height: 52px; min-width: 0; border-radius: 18px; border: 1px solid #FFFFFF; background: rgba(255,255,255,0.85); padding: 0 14px; font: inherit; font-size: 14px; color: #1E1A24; box-sizing: border-box">
+          </label>
+          <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: #6B6475">Saat
+            <input type="text" placeholder="SS:DD" style="height: 52px; min-width: 0; border-radius: 18px; border: 1px solid #FFFFFF; background: rgba(255,255,255,0.85); padding: 0 14px; font: inherit; font-size: 14px; color: #1E1A24; box-sizing: border-box">
+          </label>
+        </div>
+        <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: #6B6475">Mekân / adres
+          <input type="text" placeholder="Haritada doğrulanır" style="height: 52px; border-radius: 18px; border: 1px solid #FFFFFF; background: rgba(255,255,255,0.85); padding: 0 16px; font: inherit; font-size: 14px; color: #1E1A24; box-sizing: border-box">
+        </label>
+        <span style="font-size: 13px; font-weight: 600; color: #6B6475">Kategori</span>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px">
+          <sc-for list="{{formCats}}" as="c" hint-placeholder-count="4">
+            <button type="button" onClick="{{c.pick}}" aria-pressed="{{c.on}}" style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px 6px 6px; border-radius: 999px; border: 1.2px solid {{c.border}}; background: {{c.bg}}; color: {{c.fg}}; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer">
+              <span style="width: 30px; height: 30px; border-radius: 50%; background: {{c.dotBg}}; display: flex; align-items: center; justify-content: center">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{c.iconColor}}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{c.icon}}"></path></svg>
+              </span>{{c.label}}</button>
+          </sc-for>
+        </div>
+        <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: #6B6475">Fiyat (₺)
+          <input type="text" placeholder="0 = ücretsiz" style="height: 52px; border-radius: 18px; border: 1px solid #FFFFFF; background: rgba(255,255,255,0.85); padding: 0 16px; font: inherit; font-size: 14px; color: #1E1A24; box-sizing: border-box">
+        </label>
+        <button type="button" style="height: 64px; border-radius: 18px; border: 1.5px dashed #C7B6F0; background: rgba(255,255,255,0.6); font: inherit; font-size: 13px; font-weight: 600; color: #6239C2; cursor: pointer">+ Afiş yükle</button>
+        <label style="display: flex; gap: 10px; align-items: flex-start; font-size: 12px; line-height: 1.45; color: #6B6475; cursor: pointer">
+          <input type="checkbox" style="width: 20px; height: 20px; margin: 0; accent-color: #7B4FD8; flex-shrink: 0">
+          <span>Görselde yer alan kişilerin kullanım için rızası alındı.</span>
+        </label>
+      </div>
+      <button type="button" onClick="{{submit}}" style="height: 58px; flex-shrink: 0; border-radius: 999px; border: 0; background: linear-gradient(90deg, #9466F0, #6239C2); box-shadow: 0 10px 22px rgba(123,79,216,0.38); color: #FFFFFF; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer">Onaya gönder</button>
+    </sc-if>
+  </div>
+
+  <div style="position: absolute; left: 20px; right: 20px; bottom: 16px; display: flex; gap: 12px">
+    <nav aria-label="Ana menü" style="flex: 1; height: 66px; padding: 0 8px; border-radius: 999px; background: linear-gradient(90deg, #9466F0, #6239C2); box-shadow: 0 10px 24px rgba(123,79,216,0.4); display: flex; align-items: center; justify-content: space-evenly; box-sizing: border-box">
+      <a href="Organizator.dc.html" aria-current="page" style="display: flex; align-items: center; gap: 8px; padding: 12px 18px; border-radius: 999px; background: #FFFFFF; color: #6239C2; font-size: 14px; font-weight: 700; text-decoration: none">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15 5.1 9 3 3 5v16l6-2 6 2 6-2V3z"></path></svg>Ana sayfa</a>
+      <a href="Profil.dc.html" aria-label="Profil" style="display: flex; align-items: center; padding: 12px 14px; color: #FFFFFF">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4.5"></circle><path d="M3.5 21c0-4.4 3.8-7 8.5-7s8.5 2.6 8.5 7z"></path></svg></a>
+    </nav>
+    <button type="button" onClick="{{openForm}}" aria-label="Etkinlik gönder" style="width: 66px; height: 66px; border-radius: 50%; border: 0; background: #1E1A24; box-shadow: 0 6px 14px rgba(30,26,36,0.4); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+    </button>
+  </div>
+</div>
+</template>
+<template id="tpl-Profil">
+<style>#screen.s-Profil a{color:#DD4D3A}#screen.s-Profil a:hover{color:#B93A2A}</style>
+<div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; overflow: hidden; background: #F8EFF3; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #1E1A24">
+  <div aria-hidden="true" style="position: absolute; inset: 0; overflow: hidden">
+    <span style="position: absolute; right: -140px; top: 320px; width: 290px; height: 290px; border-radius: 50%; background: #FFC7A6; opacity: 0.35; filter: blur(70px)"></span>
+    <span style="position: absolute; left: -90px; bottom: -80px; width: 310px; height: 310px; border-radius: 50%; background: #C7B6F0; opacity: 0.35; filter: blur(70px)"></span>
+  </div>
+
+  <sc-if value="{{active}}" hint-placeholder-val="{{ true }}">
+    <div style="position: absolute; inset: 0; overflow-y: auto; padding-bottom: 120px; display: flex; flex-direction: column; box-sizing: border-box">
+      <div style="padding: 12px 20px 24px; border-radius: 0 0 40px 40px; background: linear-gradient(135deg, #F7A9C0, #F0654E); display: flex; flex-direction: column; gap: 18px; flex-shrink: 0">
+        <div style="display: flex; align-items: center">
+          <span style="font-family: Oswald, sans-serif; font-weight: 700; font-size: 44px; line-height: 1.05; color: #FFFFFF">PROFİL</span>
+          <button type="button" aria-label="Profil ayarları" style="margin-left: auto; width: 46px; height: 46px; border-radius: 50%; background: rgba(255,255,255,0.8); border: 1.2px solid #FFFFFF; display: flex; align-items: center; justify-content: center; cursor: pointer; box-sizing: border-box">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E1A24" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8M16 5v4M10 15v4"></path></svg>
+          </button>
+        </div>
+        <div style="display: flex; align-items: center; gap: 16px">
+          <span style="padding: 3px; border-radius: 26px; background: rgba(255,255,255,0.6)">
+            <span style="width: 76px; height: 76px; border-radius: 23px; background: linear-gradient(90deg, #F7836A, #DD4D3A); border: 2px solid #FFFFFF; display: flex; align-items: center; justify-content: center; font-family: Oswald, sans-serif; font-weight: 700; font-size: 29px; color: #FFFFFF; box-sizing: border-box">ÖK</span>
+          </span>
+          <span style="flex: 1; display: flex; flex-direction: column; gap: 2px; color: #FFFFFF">
+            <span style="font-size: 20px; font-weight: 800">Örnek Kullanıcı</span>
+            <span style="font-size: 12px; opacity: 0.9">ornek@ornek.com</span>
+            <span style="align-self: flex-start; margin-top: 6px; display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,0.85); color: #DD4D3A; font-size: 12px; font-weight: 800">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="m15.5 8.5-2 5-5 2 2-5z"></path></svg>Kullanıcı</span>
+          </span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+          <sc-for list="{{stats}}" as="s" hint-placeholder-count="3">
+            <span style="padding: 12px 4px; border-radius: 20px; background: rgba(255,255,255,0.22); border: 1px solid rgba(255,255,255,0.45); display: flex; flex-direction: column; align-items: center; color: #FFFFFF">
+              <span style="font-family: Oswald, sans-serif; font-weight: 700; font-size: 22px; line-height: 1.05">{{s.value}}</span>
+              <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.8px">{{s.label}}</span>
+            </span>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="padding: 20px 20px 0; display: flex; flex-direction: column; gap: 10px">
+        <span style="font-size: 11px; font-weight: 700; letter-spacing: 1.2px; color: #6B6475; padding-left: 4px">TERCİHLER</span>
+        <div style="padding: 6px 0; border-radius: 28px; background: rgba(255,255,255,0.62); border: 1.2px solid rgba(255,255,255,0.8); box-shadow: 0 14px 30px rgba(176,112,138,0.12); display: flex; flex-direction: column">
+          <sc-for list="{{prefs}}" as="p" hint-placeholder-count="4">
+            <a href="{{p.href}}" style="display: flex; align-items: center; gap: 14px; min-height: 58px; padding: 0 16px; text-decoration: none; color: #1E1A24">
+              <span style="width: 38px; height: 38px; border-radius: 14px; background: {{p.soft}}; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{p.color}}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{p.icon}}"></path></svg>
+              </span>
+              <span style="flex: 1; display: flex; flex-direction: column">
+                <span style="font-size: 14px; font-weight: 700">{{p.title}}</span>
+                <span style="font-size: 12px; color: #6B6475">{{p.sub}}</span>
+              </span>
+              <span aria-hidden="true" style="color: #A39DAB; font-size: 18px">›</span>
+            </a>
+          </sc-for>
+        </div>
+
+        <span style="font-size: 11px; font-weight: 700; letter-spacing: 1.2px; color: #6B6475; padding: 10px 0 0 4px">HESAP</span>
+        <div style="padding: 6px 0; border-radius: 28px; background: rgba(255,255,255,0.62); border: 1.2px solid rgba(255,255,255,0.8); box-shadow: 0 14px 30px rgba(176,112,138,0.12); display: flex; flex-direction: column">
+          <button type="button" onClick="{{togglePrivacy}}" aria-expanded="{{privacyAria}}" style="display: flex; align-items: center; gap: 14px; min-height: 58px; padding: 0 16px; border: 0; background: transparent; font: inherit; color: #1E1A24; cursor: pointer; text-align: left">
+            <span style="width: 38px; height: 38px; border-radius: 14px; background: #DDF2EF; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#119D8C" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"></path></svg>
+            </span>
+            <span style="flex: 1; font-size: 14px; font-weight: 700">KVKK aydınlatma metni</span>
+            <span aria-hidden="true" style="color: #A39DAB">{{privacyArrow}}</span>
+          </button>
+          <sc-if value="{{showPrivacy}}" hint-placeholder-val="{{ false }}">
+            <div style="margin: 0 16px 8px; padding: 12px 14px; border-radius: 18px; background: rgba(255,255,255,0.8); font-size: 12px; line-height: 1.5; color: #6B6475">Ad soyad, e-posta, hesap türü, ilgi alanların ve bildirim tercihlerin işlenir. Konumun yalnızca arama anında kullanılır, saklanmaz. Veriler reklam amacıyla paylaşılmaz.</div>
+          </sc-if>
+          <a href="Main.dc.html" style="display: flex; align-items: center; gap: 14px; min-height: 58px; padding: 0 16px; text-decoration: none; color: #1E1A24">
+            <span style="width: 38px; height: 38px; border-radius: 14px; background: #ECE7FE; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7B5CF0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"></path></svg>
+            </span>
+            <span style="flex: 1; font-size: 14px; font-weight: 700">Çıkış yap</span>
+          </a>
+          <button type="button" onClick="{{askDelete}}" style="display: flex; align-items: center; gap: 14px; min-height: 58px; padding: 0 16px; border: 0; background: transparent; font: inherit; color: #D93A3A; cursor: pointer; text-align: left">
+            <span style="width: 38px; height: 38px; border-radius: 14px; background: #FBE1E1; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D93A3A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"></path></svg>
+            </span>
+            <span style="flex: 1; font-size: 14px; font-weight: 700">Hesabımı sil</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <nav aria-label="Ana menü" style="position: absolute; left: 20px; right: 20px; bottom: 16px; height: 66px; padding: 0 8px; border-radius: 999px; background: linear-gradient(90deg, #F7836A, #DD4D3A); box-shadow: 0 10px 24px rgba(240,101,78,0.4); display: flex; align-items: center; justify-content: space-evenly; box-sizing: border-box">
+      <a href="Harita.dc.html" aria-label="Ana sayfa" style="display: flex; align-items: center; padding: 12px 14px; color: #FFFFFF">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15 5.1 9 3 3 5v16l6-2 6 2 6-2V3z"></path></svg></a>
+      <a href="Kayitli.dc.html" aria-label="Kayıtlı" style="display: flex; align-items: center; padding: 12px 14px; color: #FFFFFF">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21s-7.5-4.6-7.5-10.5A4.5 4.5 0 0 1 12 7.3a4.5 4.5 0 0 1 7.5 3.2C19.5 16.4 12 21 12 21z"></path></svg></a>
+      <a href="Profil.dc.html" aria-current="page" style="display: flex; align-items: center; gap: 8px; padding: 12px 18px; border-radius: 999px; background: #FFFFFF; color: #DD4D3A; font-size: 14px; font-weight: 700; text-decoration: none">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4.5"></circle><path d="M3.5 21c0-4.4 3.8-7 8.5-7s8.5 2.6 8.5 7z"></path></svg>Profil</a>
+    </nav>
+
+    <sc-if value="{{confirming}}" hint-placeholder-val="{{ false }}">
+      <div style="position: absolute; inset: 0; background: rgba(30,26,36,0.45); display: flex; align-items: center; justify-content: center; padding: 24px; box-sizing: border-box">
+        <div role="dialog" aria-label="Hesap silme onayı" style="width: 100%; background: #FFFFFF; border-radius: 28px; padding: 24px; display: flex; flex-direction: column; gap: 12px; box-sizing: border-box">
+          <h2 style="margin: 0; font-size: 20px; font-weight: 800">Hesabını silmek istiyor musun?</h2>
+          <p style="margin: 0; font-size: 14px; line-height: 1.5; color: #6B6475">Hesabın, kayıtlı etkinliklerin ve tercihlerin kalıcı olarak silinir. Bu işlem geri alınamaz.</p>
+          <div style="display: flex; justify-content: flex-end; gap: 8px; padding-top: 6px">
+            <button type="button" onClick="{{cancelDelete}}" style="min-height: 44px; padding: 0 16px; border-radius: 999px; border: 0; background: transparent; font: inherit; font-size: 14px; font-weight: 700; color: #DD4D3A; cursor: pointer">Vazgeç</button>
+            <button type="button" onClick="{{confirmDelete}}" style="min-height: 44px; padding: 0 18px; border-radius: 999px; border: 0; background: #D93A3A; color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer">Kalıcı olarak sil</button>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+  </sc-if>
+
+  <sc-if value="{{deleted}}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 32px; text-align: center; box-sizing: border-box">
+      <span style="width: 84px; height: 84px; border-radius: 28px; background: linear-gradient(135deg, #F7836A, #DD4D3A); display: flex; align-items: center; justify-content: center; box-shadow: 0 14px 26px rgba(240,101,78,0.4)">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"></path></svg>
+      </span>
+      <h1 style="margin: 0; font-family: Oswald, sans-serif; font-weight: 600; font-size: 34px; line-height: 1.05">HESABIN <span style="color: #F0654E">SİLİNDİ</span></h1>
+      <p style="margin: 0; font-size: 14px; line-height: 1.5; color: #6B6475">Tüm kişisel verilerin sistemden kaldırıldı.</p>
+      <a href="Main.dc.html" style="height: 54px; padding: 0 26px; border-radius: 999px; background: linear-gradient(90deg, #F7836A, #DD4D3A); color: #FFFFFF; font-weight: 700; font-size: 15px; display: flex; align-items: center; text-decoration: none">Karşılamaya dön</a>
+      <button type="button" onClick="{{undo}}" style="background: none; border: 0; font: inherit; font-size: 12px; font-weight: 700; color: #6B6475; text-decoration: underline; min-height: 32px; cursor: pointer">Wireframe'i sıfırla</button>
+    </div>
+  </sc-if>
+</div>
+</template>
+
+<script>
+// Wireframe ekranlarını çizen küçük şablon motoru:
+// {{yol}} yer tutucuları, <sc-for list as>, <sc-if value>, onClick/onChange bağları ve setState.
+var SCREENS = {};
+SCREENS.Main = { title: "1 · Karşılama + rol seçimi" };
+SCREENS.Giris = { title: "2 · Giriş / kayıt + KVKK" };
+SCREENS.Harita = { title: "3 · Ana sayfa + harita" };
+SCREENS.Detay = { title: "4 · Etkinlik detayı" };
+SCREENS.Arama = { title: "5 · Doğal dil arama sonucu" };
+SCREENS.Kayitli = { title: "6 · Kayıtlı etkinlikler" };
+SCREENS.Paylasim = { title: "7 · Instagram paylaşımı → pin" };
+SCREENS.Organizator = { title: "8 · Organizatör paneli" };
+SCREENS.Profil = { title: "9 · Profil + hesap silme" };
+
+class DCLogic {
+  constructor(props) { this.props = props || {}; this.state = {}; }
+  setState(patch) {
+    this.state = Object.assign({}, this.state, typeof patch === 'function' ? patch(this.state) : patch);
+    if (this._onChange) this._onChange();
+  }
+  renderVals() { return {}; }
+}
+
+SCREENS.Main.Logic = class extends DCLogic {
+  renderVals() {
+    const I = {
+      music: 'M9 18V5l12-2v13M9 18a3 3 0 1 1-6 0a3 3 0 1 1 6 0M21 16a3 3 0 1 1-6 0a3 3 0 1 1 6 0',
+      mask: 'M4 5h16v6a8 8 0 0 1-16 0zM9 10h.01M15 10h.01M9.5 14a3.5 3.5 0 0 0 5 0',
+      palette: 'M12 3a9 9 0 1 0 0 18c1.2 0 1.8-.8 1.8-1.8 0-1.3-1.1-1.6-1.1-2.6 0-.9.8-1.6 1.8-1.6H17a4 4 0 0 0 4-4C21 6.6 17 3 12 3zM7.5 11h.01M10 7.5h.01M15 7.5h.01',
+      party: 'M4 20l4.5-12 7.5 7.5zM13 4.5l.8 1.8M18.5 9.2l1.8-.8M16 6l2-2',
+      mic: 'M12 3a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM5 11a7 7 0 0 0 14 0M12 18v3',
+      brush: 'M14 4l6 6-8 8-6-6zM6 12l-2 7 7-2',
+      movie: 'M3 5h18v14H3zM3 9h18M8 5v4M16 5v4'
+    };
+    return {
+      pins: [
+        { x: '170px', y: '48px', color: '#F0654E', glow: 'rgba(240,101,78,0.45)', icon: I.music },
+        { x: '196px', y: '108px', color: '#7B5CF0', glow: 'rgba(123,92,240,0.45)', icon: I.mask },
+        { x: '120px', y: '112px', color: '#F6A723', glow: 'rgba(246,167,35,0.45)', icon: I.palette },
+        { x: '278px', y: '160px', color: '#E85C9C', glow: 'rgba(232,92,156,0.45)', icon: I.party },
+        { x: '196px', y: '154px', color: '#3B9EF5', glow: 'rgba(59,158,245,0.45)', icon: I.mic }
+      ],
+      cats: [
+        { label: 'Konser', color: '#7B5CF0', soft: '#C9BCF9', icon: I.music },
+        { label: 'Tiyatro', color: '#F0654E', soft: '#F9C1B8', icon: I.mask },
+        { label: 'Sergi', color: '#F6A723', soft: '#FBDBA7', icon: I.palette },
+        { label: 'Festival', color: '#E85C9C', soft: '#F6BED8', icon: I.party },
+        { label: 'Stand-up', color: '#3B9EF5', soft: '#B1D8FB', icon: I.mic },
+        { label: 'Atölye', color: '#5DB047', soft: '#BEDFB5', icon: I.brush },
+        { label: 'Sinema', color: '#119D8C', soft: '#A0D8D1', icon: I.movie }
+      ]
+    };
+  }
+};
+
+SCREENS.Giris.Logic = class extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { org: false, tab: 'login', consent: false };
+  }
+  renderVals() {
+    const s = this.state;
+    const org = s.org;
+    const accent = org ? '#7B4FD8' : '#F0654E';
+    const reg = s.tab === 'register';
+    const copy = org
+      ? (reg ? ['ETKİNLİĞİNİ', 'HARİTAYA TAŞI', 'Etkinliklerin onaydan sonra haritada yayınlanır.'] : ['SAHNE', 'SENİN', 'Etkinliklerini yönet, yeni etkinlik gönder.'])
+      : (reg ? ['ŞEHRİ', 'KEŞFETMEYE BAŞLA', 'İlgi alanlarını seç, sana uygun etkinlikleri gösterelim.'] : ['TEKRAR', 'HOŞ GELDİN', 'Kaldığın yerden keşfetmeye devam et.']);
+    const tabs = [{ id: 'login', label: 'GİRİŞ YAP' }, { id: 'register', label: 'KAYIT OL' }].map((t) => {
+      const on = t.id === s.tab;
+      return {
+        label: t.label,
+        on: on ? 'true' : 'false',
+        color: on ? accent : '#A39DAB',
+        bar: on ? '26px' : '0px',
+        pick: () => this.setState({ tab: t.id })
+      };
+    });
+    return {
+      accent,
+      accentText: org ? '#6239C2' : '#DD4D3A',
+      gradient: org ? 'linear-gradient(90deg, #9466F0, #6239C2)' : 'linear-gradient(90deg, #F7836A, #DD4D3A)',
+      glow: org ? 'rgba(123,79,216,0.38)' : 'rgba(240,101,78,0.38)',
+      blob1: org ? '#C7B6F0' : '#F2A3C0',
+      blob2: org ? '#F2A3C0' : '#FFC7A6',
+      blob3: org ? '#7B4FD8' : '#C7B6F0',
+      roleLabel: org ? 'Organizatör' : 'Kullanıcı',
+      roleIcon: org ? 'M3 10v4h3l6 4V6L6 10zM16 9a4 4 0 0 1 0 6' : 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM15.5 8.5l-2 5-5 2 2-5z',
+      tabs,
+      title: copy[0],
+      titleAccent: copy[1],
+      subtitle: copy[2],
+      isRegister: reg,
+      cta: reg ? 'Hesap oluştur' : 'Giriş yap',
+      nextHref: org ? 'Organizator.dc.html' : 'Harita.dc.html',
+      consent: s.consent,
+      noConsent: !s.consent,
+      toggleConsent: () => this.setState({ consent: !s.consent }),
+      toggleRole: () => this.setState({ org: !org })
+    };
+  }
+};
+
+SCREENS.Harita.Logic = class extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { time: 'tonight', free: false, cats: { concert: true, theatre: true, festival: true } };
+  }
+  renderVals() {
+    const s = this.state;
+    const I = {
+      music: 'M9 18V5l12-2v13M9 18a3 3 0 1 1-6 0a3 3 0 1 1 6 0M21 16a3 3 0 1 1-6 0a3 3 0 1 1 6 0',
+      mask: 'M4 5h16v6a8 8 0 0 1-16 0zM9 10h.01M15 10h.01M9.5 14a3.5 3.5 0 0 0 5 0',
+      palette: 'M12 3a9 9 0 1 0 0 18c1.2 0 1.8-.8 1.8-1.8 0-1.3-1.1-1.6-1.1-2.6 0-.9.8-1.6 1.8-1.6H17a4 4 0 0 0 4-4C21 6.6 17 3 12 3zM7.5 11h.01M10 7.5h.01M15 7.5h.01',
+      party: 'M4 20l4.5-12 7.5 7.5zM13 4.5l.8 1.8M18.5 9.2l1.8-.8M16 6l2-2',
+      mic: 'M12 3a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM5 11a7 7 0 0 0 14 0M12 18v3',
+      brush: 'M14 4l6 6-8 8-6-6zM6 12l-2 7 7-2',
+      movie: 'M3 5h18v14H3zM3 9h18M8 5v4M16 5v4'
+    };
+    const pillDefs = [
+      { id: 'tonight', label: 'Bu akşam' },
+      { id: 'weekend', label: 'Bu hafta sonu' },
+      { id: 'free', label: 'Ücretsiz' },
+      { id: 'km', label: '5 km içinde' }
+    ];
+    const pills = pillDefs.map((p) => {
+      const on = p.id === 'free' ? s.free : p.id === 'km' ? true : s.time === p.id;
+      return {
+        label: p.label,
+        on: on ? 'true' : 'false',
+        bg: on ? '#1E1A24' : 'rgba(255,255,255,0.75)',
+        fg: on ? '#FFFFFF' : '#1E1A24',
+        border: on ? '#1E1A24' : '#FFFFFF',
+        pick: () => {
+          if (p.id === 'free') this.setState({ free: !s.free });
+          else if (p.id !== 'km') this.setState({ time: p.id });
+        }
+      };
+    });
+    const catDefs = [
+      { id: 'concert', label: 'Konser', color: '#7B5CF0', soft: '#C9BCF9', icon: I.music },
+      { id: 'theatre', label: 'Tiyatro', color: '#F0654E', soft: '#F9C1B8', icon: I.mask },
+      { id: 'festival', label: 'Festival', color: '#E85C9C', soft: '#F6BED8', icon: I.party },
+      { id: 'exhibition', label: 'Sergi', color: '#F6A723', soft: '#FBDBA7', icon: I.palette },
+      { id: 'standup', label: 'Stand-up', color: '#3B9EF5', soft: '#B1D8FB', icon: I.mic },
+      { id: 'workshop', label: 'Atölye', color: '#5DB047', soft: '#BEDFB5', icon: I.brush },
+      { id: 'cinema', label: 'Sinema', color: '#119D8C', soft: '#A0D8D1', icon: I.movie }
+    ];
+    const cats = catDefs.map((c) => {
+      const on = !!s.cats[c.id];
+      return {
+        label: c.label,
+        color: c.color,
+        icon: c.icon,
+        on: on ? 'true' : 'false',
+        ring: on ? 'conic-gradient(' + c.color + ', ' + c.soft + ', ' + c.color + ')' : '#FFFFFF',
+        pick: () => {
+          const next = Object.assign({}, s.cats);
+          next[c.id] = !on;
+          this.setState({ cats: next });
+        }
+      };
+    });
+    const dark = { bg: '#1E1A24', fg: '#FFFFFF', line: 'solid', border: '#1E1A24' };
+    const free = { bg: '#DDF3E6', fg: '#146C3C', line: 'solid', border: '#DDF3E6' };
+    const est = { bg: '#FEF1D8', fg: '#7A4A00', line: 'dashed', border: '#F6A723' };
+    let events = [
+      Object.assign({ title: '[Örnek] Akşam Caz Konseri', meta: '20:30 · Kültürpark Açıkhava · 1,2 km', price: '₺250', color: '#7B5CF0', soft: '#ECE7FE', icon: I.music, isFree: false }, dark),
+      Object.assign({ title: '[Örnek] Kordon Sokak Müziği', meta: '19:00 · Alsancak Kordon · 0,6 km', price: 'Ücretsiz', color: '#E85C9C', soft: '#FCE3EF', icon: I.party, isFree: true }, free),
+      Object.assign({ title: '[Örnek] Doğaçlama Tiyatro', meta: '21:00 · Bornova sahnesi · 4,1 km', price: '~₺200', color: '#F0654E', soft: '#FDE5DF', icon: I.mask, isFree: false }, est)
+    ];
+    if (s.free) events = events.filter((e) => e.isFree);
+    return {
+      pills,
+      cats,
+      events,
+      count: s.free ? '14' : (s.time === 'weekend' ? '48' : '23'),
+      pins: [
+        { name: 'Caz gecesi', x: '160px', y: '50px', color: '#7B5CF0', glow: 'rgba(123,92,240,0.45)', icon: I.music },
+        { name: 'Doğaçlama tiyatro', x: '190px', y: '140px', color: '#F0654E', glow: 'rgba(240,101,78,0.45)', icon: I.mask },
+        { name: 'Fotoğraf sergisi', x: '118px', y: '150px', color: '#F6A723', glow: 'rgba(246,167,35,0.45)', icon: I.palette },
+        { name: 'Sokak festivali', x: '270px', y: '214px', color: '#E85C9C', glow: 'rgba(232,92,156,0.45)', icon: I.party },
+        { name: 'Stand-up gecesi', x: '196px', y: '204px', color: '#3B9EF5', glow: 'rgba(59,158,245,0.45)', icon: I.mic }
+      ]
+    };
+  }
+};
+
+SCREENS.Detay.Logic = class extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { variant: 'listed', saved: false };
+  }
+  renderVals() {
+    const info = {
+      listed: { price: '₺250', badge: 'Listelenmiş', bg: '#1E1A24', fg: '#FFFFFF', line: 'solid', border: '#1E1A24', note: 'Fiyat, kaynak sayfasında yazıyor.' },
+      found: { price: '₺250', badge: 'Bulundu', bg: '#E0EFFE', fg: '#145A9E', line: 'solid', border: '#3B9EF5', note: 'Kaynakta fiyat yoktu. Ajan bilet sayfasında buldu: biletplatformu-a.example/etkinlik/123' },
+      est: { price: '~₺150–300', badge: 'Tahmini', bg: '#FEF1D8', fg: '#7A4A00', line: 'dashed', border: '#F6A723', note: 'Fiyat bulunamadı. Aynı mekândaki benzer etkinliklere göre AI tahmini; kesin değildir.' }
+    };
+    const cur = info[this.state.variant];
+    const variants = [
+      { id: 'listed', label: 'Listelenmiş' },
+      { id: 'found', label: 'Bulundu' },
+      { id: 'est', label: 'Tahmini' }
+    ].map((v) => {
+      const on = v.id === this.state.variant;
+      return {
+        label: v.label,
+        on: on ? 'true' : 'false',
+        bg: on ? '#1E1A24' : 'rgba(255,255,255,0.75)',
+        fg: on ? '#FFFFFF' : '#1E1A24',
+        border: on ? '#1E1A24' : '#FFFFFF',
+        pick: () => this.setState({ variant: v.id })
+      };
+    });
+    const saved = this.state.saved;
+    return {
+      price: cur.price,
+      badge: cur.badge,
+      badgeBg: cur.bg,
+      badgeFg: cur.fg,
+      badgeLine: cur.line,
+      badgeBorder: cur.border,
+      priceNote: cur.note,
+      variants,
+      sources: [
+        { letter: 'B', soft: '#DDF2EF', color: '#0B6E62', name: 'Belediye kültür-sanat sayfası (örnek)', meta: 'API' },
+        { letter: 'A', soft: '#E0EFFE', color: '#145A9E', name: 'Bilet platformu A (örnek)', meta: 'Firecrawl' },
+        { letter: 'O', soft: '#EDE5FB', color: '#6239C2', name: 'Organizatör gönderimi (örnek)', meta: 'Uygulama' }
+      ],
+      savers: [
+        { initials: 'AY', bg: '#7B5CF0' },
+        { initials: 'MK', bg: '#E85C9C' },
+        { initials: 'ED', bg: '#F6A723' },
+        { initials: '+9', bg: '#1E1A24' }
+      ],
+      savedAria: saved ? 'true' : 'false',
+      saveLabel: saved ? 'Kaydedildi' : 'Kaydet',
+      saveBg: saved ? '#FFFFFF' : 'linear-gradient(90deg, #F7836A, #DD4D3A)',
+      saveFg: saved ? '#DD4D3A' : '#FFFFFF',
+      saveIconBg: saved ? '#FDE5DF' : 'rgba(255,255,255,0.22)',
+      toggleSave: () => this.setState({ saved: !saved })
+    };
+  }
+};
+
+SCREENS.Arama.Logic = class extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { view: 'list' };
+  }
+  renderVals() {
+    const isList = this.state.view === 'list';
+    const views = [{ id: 'list', label: 'Liste' }, { id: 'map', label: 'Harita' }].map((v) => {
+      const on = v.id === this.state.view;
+      return {
+        label: v.label,
+        on: on ? 'true' : 'false',
+        bg: on ? '#1E1A24' : 'rgba(255,255,255,0.75)',
+        fg: on ? '#FFFFFF' : '#1E1A24',
+        border: on ? '#1E1A24' : '#FFFFFF',
+        pick: () => this.setState({ view: v.id })
+      };
+    });
+    return {
+      filters: ['Ücretsiz', 'Bu akşam 18:00–23:59', '3 km içinde'],
+      views,
+      isList,
+      isMap: !isList,
+      results: [
+        { title: '[Örnek] Kordon Sokak Müziği', meta: 'Bugün 19:00 · Alsancak Kordon', dist: '0,6 KM', x: '150px', y: '90px' },
+        { title: '[Örnek] Gençlik Korosu', meta: 'Bugün 20:00 · AASSM', dist: '1,8 KM', x: '240px', y: '200px' },
+        { title: '[Örnek] Açık Mikrofon Gecesi', meta: 'Bugün 21:00 · Kültürpark', dist: '2,1 KM', x: '110px', y: '220px' },
+        { title: '[Örnek] Belediye Bandosu', meta: 'Bugün 19:30 · Konak Meydanı', dist: '2,7 KM', x: '220px', y: '110px' }
+      ]
+    };
+  }
+};
+
+SCREENS.Kayitli.Logic = class extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { removed: {} };
+  }
+  renderVals() {
+    const dark = { bg: '#1E1A24', fg: '#FFFFFF', line: 'solid', border: '#1E1A24' };
+    const free = { bg: '#DDF3E6', fg: '#146C3C', line: 'solid', border: '#DDF3E6' };
+    const est = { bg: '#FEF1D8', fg: '#7A4A00', line: 'dashed', border: '#F6A723' };
+    const all = [
+      Object.assign({ id: 1, day: '8', color: '#7B5CF0', glow: 'rgba(123,92,240,0.35)', title: '[Örnek] Akşam Caz Konseri', meta: 'Cmt 20:30 · Kültürpark Açıkhava', price: '₺250 · Listelenmiş' }, dark),
+      Object.assign({ id: 2, day: '9', color: '#F0654E', glow: 'rgba(240,101,78,0.35)', title: '[Örnek] Çocuk Tiyatrosu', meta: 'Paz 14:00 · Bornova sahnesi', price: '~₺150–300 · Tahmini' }, est),
+      Object.assign({ id: 3, day: '14', color: '#F6A723', glow: 'rgba(246,167,35,0.35)', title: '[Örnek] Fotoğraf Sergisi', meta: 'Cum 10:00 · Karşıyaka galerisi', price: 'Ücretsiz' }, free)
+    ];
+    const removed = this.state.removed;
+    const items = all.filter((x) => !removed[x.id]).map((x) => Object.assign({}, x, {
+      remove: () => {
+        const next = Object.assign({}, removed);
+        next[x.id] = true;
+        this.setState({ removed: next });
+      }
+    }));
+    return {
+      items,
+      count: items.length,
+      empty: items.length === 0,
+      reset: () => this.setState({ removed: {} })
+    };
+  }
+};
+
+SCREENS.Paylasim.Logic = class extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { step: 1 };
+  }
+  renderVals() {
+    const step = this.state.step;
+    return {
+      step,
+      bars: [1, 2, 3].map((i) => (i <= step ? '#F0654E' : 'rgba(255,255,255,0.85)')),
+      isStep1: step === 1,
+      isStep2: step === 2,
+      isStep3: step === 3,
+      fields: [
+        { label: 'Etkinlik adı', value: '[Örnek] Akustik Gece' },
+        { label: 'Tarih ve saat', value: '8 Kasım Cumartesi, 21:00' },
+        { label: 'Mekân', value: 'Örnek Kafe, Kıbrıs Şehitleri Cd., Alsancak' },
+        { label: 'Kategori', value: 'Konser · Akustik' }
+      ],
+      toStep1: () => this.setState({ step: 1 }),
+      toStep2: () => this.setState({ step: 2 }),
+      toStep3: () => this.setState({ step: 3 })
+    };
+  }
+};
+
+SCREENS.Organizator.Logic = class extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { view: 'panel', approved: false, sent: false, cat: 'talk' };
+  }
+  renderVals() {
+    const s = this.state;
+    const I = {
+      music: 'M9 18V5l12-2v13M9 18a3 3 0 1 1-6 0a3 3 0 1 1 6 0M21 16a3 3 0 1 1-6 0a3 3 0 1 1 6 0',
+      talk: 'M4 5h12v8H8l-4 3zM10 16v1a2 2 0 0 0 2 2h5l3 2v-8a2 2 0 0 0-2-2h-1',
+      brush: 'M14 4l6 6-8 8-6-6zM6 12l-2 7 7-2',
+      palette: 'M12 3a9 9 0 1 0 0 18c1.2 0 1.8-.8 1.8-1.8 0-1.3-1.1-1.6-1.1-2.6 0-.9.8-1.6 1.8-1.6H17a4 4 0 0 0 4-4C21 6.6 17 3 12 3zM7.5 11h.01M10 7.5h.01M15 7.5h.01'
+    };
+    const status = s.approved
+      ? { title: 'HESABIN ONAYLI', body: 'Etkinliklerin onaydan sonra haritada yayınlanır.', color: '#1F9D57', soft: '#DDF3E6', icon: 'M12 3l2.5 2 3.2-.3.8 3.1 2.5 2-1.4 2.9.4 3.2-3.1.9-1.9 2.6-3-1.2-3 1.2-1.9-2.6-3.1-.9.4-3.2L2.9 10l2.5-2 .8-3.1 3.2.3zM8.5 12l2.5 2.5 4.5-5' }
+      : { title: 'ONAY BEKLİYOR', body: 'Bilgilerini inceliyoruz, genellikle 1–2 iş günü sürer.', color: '#C27C00', soft: '#FEF1D8', icon: 'M7 3h10M7 21h10M8 3v4l4 5-4 5v4M16 3v4l-4 5 4 5v4' };
+    const pending = { status: 'Onay bekliyor', bg: '#FEF1D8', fg: '#7A4A00' };
+    const live = { status: 'Yayında', bg: '#DDF3E6', fg: '#146C3C' };
+    let subs = [
+      Object.assign({ title: '[Örnek] Sonbahar Şiir Akşamı', meta: '12 Kasım 19:00 · Örnek Kitapevi', soft: '#FDE5DF', color: '#F0654E', icon: I.talk }, pending),
+      Object.assign({ title: '[Örnek] Seramik Atölyesi', meta: '2 Kasım 11:00 · Örnek Atölye', soft: '#E5F3E1', color: '#5DB047', icon: I.brush }, live)
+    ];
+    if (s.sent) subs = [Object.assign({ title: '[Örnek] Yeni gönderdiğin etkinlik', meta: 'Az önce gönderildi', soft: '#EDE5FB', color: '#7B4FD8', icon: I.music }, pending)].concat(subs);
+    const catDefs = [
+      { id: 'talk', label: 'Söyleşi', color: '#F0654E', icon: I.talk },
+      { id: 'workshop', label: 'Atölye', color: '#5DB047', icon: I.brush },
+      { id: 'concert', label: 'Konser', color: '#7B5CF0', icon: I.music },
+      { id: 'exhibition', label: 'Sergi', color: '#F6A723', icon: I.palette }
+    ];
+    const formCats = catDefs.map((c) => {
+      const on = s.cat === c.id;
+      return {
+        label: c.label,
+        icon: c.icon,
+        on: on ? 'true' : 'false',
+        bg: on ? c.color : 'rgba(255,255,255,0.75)',
+        border: on ? c.color : '#FFFFFF',
+        fg: on ? '#FFFFFF' : '#1E1A24',
+        dotBg: on ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.05)',
+        iconColor: on ? '#FFFFFF' : c.color,
+        pick: () => this.setState({ cat: c.id })
+      };
+    });
+    const pendingCount = subs.filter((x) => x.status === 'Onay bekliyor').length;
+    return {
+      isPanel: s.view === 'panel',
+      isForm: s.view === 'form',
+      statusTitle: status.title,
+      statusBody: status.body,
+      statusColor: status.color,
+      statusSoft: status.soft,
+      statusIcon: status.icon,
+      ctaOpacity: s.approved ? '1' : '0.5',
+      stats: [
+        { value: '1', label: 'YAYINDA', color: '#7B4FD8' },
+        { value: String(pendingCount), label: 'BEKLEYEN', color: '#F6A723' },
+        { value: '37', label: 'KAYDEDEN', color: '#F0654E' }
+      ],
+      subs,
+      justSent: s.sent,
+      formCats,
+      toggleApproved: () => this.setState({ approved: !s.approved }),
+      openForm: () => this.setState({ view: 'form' }),
+      closeForm: () => this.setState({ view: 'panel' }),
+      submit: () => this.setState({ view: 'panel', sent: true })
+    };
+  }
+};
+
+SCREENS.Profil.Logic = class extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { showPrivacy: false, confirming: false, deleted: false };
+  }
+  renderVals() {
+    const s = this.state;
+    return {
+      active: !s.deleted,
+      deleted: s.deleted,
+      confirming: s.confirming,
+      showPrivacy: s.showPrivacy,
+      privacyAria: s.showPrivacy ? 'true' : 'false',
+      privacyArrow: s.showPrivacy ? '▴' : '▾',
+      stats: [
+        { value: '3', label: 'İLGİ ALANI' },
+        { value: '5 km', label: 'MESAFE' },
+        { value: '3', label: 'KAYITLI' }
+      ],
+      prefs: [
+        { title: 'İlgi alanları', sub: 'Konser, Tiyatro, Festival', href: 'Harita.dc.html', soft: '#FDE5DF', color: '#F0654E', icon: 'M12 21s-7.5-4.6-7.5-10.5A4.5 4.5 0 0 1 12 7.3a4.5 4.5 0 0 1 7.5 3.2C19.5 16.4 12 21 12 21z' },
+        { title: 'Bölge ve mesafe', sub: 'Konak · 5 km', href: 'Harita.dc.html', soft: '#E0EFFE', color: '#3B9EF5', icon: 'M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21zM12 7a2.5 2.5 0 1 0 0 5a2.5 2.5 0 1 0 0-5z' },
+        { title: 'Bütçe', sub: '250 ₺ altı', href: 'Harita.dc.html', soft: '#FEF1D8', color: '#C27C00', icon: 'M3 7h18v10H3zM12 10a2 2 0 1 0 0 4a2 2 0 1 0 0-4zM6 10v4M18 10v4' },
+        { title: 'Instagram paylaşım akışı', sub: 'Demo: paylaşımdan pin', href: 'Paylasim.dc.html', soft: '#FCE3EF', color: '#E85C9C', icon: 'M4 4h16v16H4zM12 8.5a3.5 3.5 0 1 0 0 7a3.5 3.5 0 1 0 0-7zM16.5 7.5h.01' }
+      ],
+      togglePrivacy: () => this.setState({ showPrivacy: !s.showPrivacy }),
+      askDelete: () => this.setState({ confirming: true }),
+      cancelDelete: () => this.setState({ confirming: false }),
+      confirmDelete: () => this.setState({ confirming: false, deleted: true }),
+      undo: () => this.setState({ deleted: false })
+    };
+  }
+};
+
+(function () {
+  var HOLE = /\{\{\s*([^}]+?)\s*\}\}/g;
+  var WHOLE = /^\{\{\s*([^}]+?)\s*\}\}$/;
+  var BOOL_ATTRS = { checked: 1, disabled: 1, selected: 1, hidden: 1, open: 1 };
+
+  function lookup(path, scopes) {
+    if (path === 'true') return true;
+    if (path === 'false') return false;
+    var parts = path.split('.');
+    for (var i = scopes.length - 1; i >= 0; i--) {
+      if (scopes[i] && Object.prototype.hasOwnProperty.call(scopes[i], parts[0])) {
+        var v = scopes[i][parts[0]];
+        for (var j = 1; j < parts.length && v != null; j++) v = v[parts[j]];
+        return v;
+      }
+    }
+    return undefined;
+  }
+  function interp(str, scopes) {
+    return str.replace(HOLE, function (_, p) { var v = lookup(p, scopes); return v == null ? '' : String(v); });
+  }
+  function screenFromHref(href) {
+    var m = /^([A-Za-z0-9_]+)\.dc\.html$/.exec(href || '');
+    return m && SCREENS[m[1]] ? m[1] : null;
+  }
+
+  function processChildren(parent, scopes) {
+    var kids = Array.prototype.slice.call(parent.childNodes);
+    for (var i = 0; i < kids.length; i++) processNode(kids[i], scopes);
+  }
+  function unwrap(el) {
+    var p = el.parentNode;
+    while (el.firstChild) p.insertBefore(el.firstChild, el);
+    p.removeChild(el);
+  }
+  function processNode(node, scopes) {
+    if (node.nodeType === 3) {
+      if (node.nodeValue.indexOf('{{') >= 0) node.nodeValue = interp(node.nodeValue, scopes);
+      return;
+    }
+    if (node.nodeType !== 1) return;
+    var tag = node.tagName.toLowerCase();
+    if (tag === 'sc-for') {
+      var list = lookup((WHOLE.exec(node.getAttribute('list') || '') || [])[1] || '', scopes) || [];
+      var as = node.getAttribute('as') || 'item';
+      var tplKids = Array.prototype.slice.call(node.childNodes);
+      var p = node.parentNode;
+      list.forEach(function (item, idx) {
+        var sc = {}; sc[as] = item; sc.index = idx;
+        var frag = document.createDocumentFragment();
+        tplKids.forEach(function (k) { frag.appendChild(k.cloneNode(true)); });
+        processChildren(frag, scopes.concat([sc]));
+        p.insertBefore(frag, node);
+      });
+      p.removeChild(node);
+      return;
+    }
+    if (tag === 'sc-if') {
+      var val = lookup((WHOLE.exec(node.getAttribute('value') || '') || [])[1] || '', scopes);
+      if (val) { processChildren(node, scopes); unwrap(node); }
+      else node.parentNode.removeChild(node);
+      return;
+    }
+    var attrs = Array.prototype.slice.call(node.attributes);
+    for (var i = 0; i < attrs.length; i++) {
+      var name = attrs[i].name, value = attrs[i].value;
+      if (name.indexOf('hint-') === 0) { node.removeAttribute(name); continue; }
+      if (name.indexOf('on') === 0) {
+        var m = WHOLE.exec(value);
+        node.removeAttribute(name);
+        var fn = m ? lookup(m[1], scopes) : null;
+        if (typeof fn === 'function') node.addEventListener(name.slice(2).toLowerCase(), fn);
+        continue;
+      }
+      if (value.indexOf('{{') < 0) continue;
+      var whole = WHOLE.exec(value);
+      if (whole && BOOL_ATTRS[name]) {
+        var b = !!lookup(whole[1], scopes);
+        if (b) node.setAttribute(name, ''); else node.removeAttribute(name);
+        if (name in node) node[name] = b;
+        continue;
+      }
+      node.setAttribute(name, interp(value, scopes));
+    }
+    if (tag === 'a') {
+      var target = screenFromHref(node.getAttribute('href'));
+      if (target) {
+        node.setAttribute('href', '#' + target);
+      } else if (!/^#/.test(node.getAttribute('href') || '')) {
+        node.setAttribute('href', '#');
+        node.addEventListener('click', function (e) { e.preventDefault(); });
+      }
+    }
+    processChildren(node, scopes);
+  }
+
+  var instances = {};
+  var current = null;
+  var screenEl = document.getElementById('screen');
+
+  function render() {
+    var inst = instances[current];
+    var scrollers = screenEl.querySelectorAll('[style*="overflow-y: auto"]');
+    var saved = Array.prototype.map.call(scrollers, function (s) { return s.scrollTop; });
+    var frag = document.getElementById('tpl-' + current).content.cloneNode(true);
+    processChildren(frag, [inst.renderVals()]);
+    screenEl.className = 's-' + current;
+    screenEl.replaceChildren(frag);
+    if (inst._keepScroll) {
+      Array.prototype.forEach.call(screenEl.querySelectorAll('[style*="overflow-y: auto"]'), function (s, i) {
+        if (saved[i]) s.scrollTop = saved[i];
+      });
+    }
+    inst._keepScroll = false;
+  }
+  function show(key) {
+    if (!SCREENS[key]) key = 'Main';
+    current = key;
+    if (!instances[key]) {
+      var inst = new SCREENS[key].Logic({});
+      inst._onChange = function () { inst._keepScroll = true; if (current === key) render(); };
+      instances[key] = inst;
+    }
+    render();
+    document.querySelectorAll('.tab').forEach(function (t) {
+      t.setAttribute('aria-current', t.dataset.screen === key ? 'true' : 'false');
+    });
+  }
+  function fit() {
+    var phone = document.getElementById('phone'), stage = document.getElementById('stage');
+    var availW = Math.min(window.innerWidth - 32, 390);
+    var availH = window.innerHeight - 40;
+    var s = Math.min(1, availW / 390, Math.max(0.62, availH / 844));
+    s = Math.min(s, availW / 390);
+    phone.style.transform = 'scale(' + s + ')';
+    stage.style.width = (390 * s) + 'px';
+    stage.style.height = (844 * s) + 'px';
+  }
+
+  document.querySelectorAll('.tab').forEach(function (t) {
+    t.addEventListener('click', function () { location.hash = t.dataset.screen; });
+  });
+  window.addEventListener('hashchange', function () { show(location.hash.slice(1)); });
+  window.addEventListener('resize', fit);
+  fit();
+  show(location.hash.slice(1));
+})();
+</script>
+</body>
+</html>
