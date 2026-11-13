@@ -20,84 +20,102 @@ class WelcomeScreen extends StatelessWidget {
     return Scaffold(
       body: AuroraBackground(
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-            child: MaxWidth(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
+          child: LayoutBuilder(
+            builder: (context, viewport) {
+              // Kısa ekranlarda (ör. iPhone 15/16) iki rol kartının da
+              // kaydırmadan görünmesi için harita ve boşlukları sıkıştır.
+              final compact = viewport.maxHeight < 860;
+              final mapHeight = compact
+                  ? (viewport.maxHeight * 0.27).clamp(170.0, 300.0)
+                  : 300.0;
+              final gap = compact ? 0.6 : 1.0;
+              return SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(
+                  20,
+                  compact ? 8 : 16,
+                  20,
+                  compact ? 12 : 24,
+                ),
+                child: MaxWidth(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const BrandMark(),
-                      const Spacer(),
-                      if (!Env.hasSupabase)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.glass(0.8),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Text(
-                            'Demo',
-                            style: text.labelSmall?.copyWith(
-                              fontWeight: FontWeight.w700,
+                      Row(
+                        children: [
+                          const BrandMark(),
+                          const Spacer(),
+                          if (!Env.hasSupabase)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.glass(0.8),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text(
+                                'Demo',
+                                style: text.labelSmall?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                             ),
+                        ],
+                      ),
+                      SizedBox(height: 22 * gap),
+                      MapPreview(
+                        height: mapHeight,
+                        stats: [
+                          ('5+', 'Kaynak'),
+                          ('${Catalog.districts.length}', 'İlçe'),
+                        ],
+                      ),
+                      SizedBox(height: 18 * gap),
+                      const _CategoryStrip(),
+                      SizedBox(height: 26 * gap),
+                      DisplayTitle(
+                        'İzmir\'de bu akşam',
+                        accent: 'ne var?',
+                        size: compact ? 36 : 44,
+                      ),
+                      SizedBox(height: 10 * gap),
+                      Text(
+                        'Konserden sergiye şehrin etkinlikleri tek haritada; tarihi, mekânı ve fiyatıyla.',
+                        style: (compact ? text.bodyMedium : text.bodyLarge)
+                            ?.copyWith(color: AppColors.inkSoft),
+                      ),
+                      SizedBox(height: 26 * gap),
+                      _RoleCard(
+                        role: UserRole.user,
+                        icon: Icons.explore_rounded,
+                        title: 'Etkinlik keşfet',
+                        body: 'Yakınındaki etkinlikleri bul, filtrele, kaydet.',
+                        onTap: () => context.go(Routes.login(UserRole.user)),
+                      ),
+                      SizedBox(height: 12 * gap),
+                      _RoleCard(
+                        role: UserRole.organizer,
+                        icon: Icons.campaign_rounded,
+                        title: 'Organizatörüm',
+                        body: 'Etkinliklerini yayınla, haritada görünür ol.',
+                        onTap: () =>
+                            context.go(Routes.login(UserRole.organizer)),
+                      ),
+                      if (!Env.hasSupabase) ...[
+                        SizedBox(height: 18 * gap),
+                        Center(
+                          child: Text(
+                            'Demo modu · veriler yalnızca bu cihazda',
+                            style: text.bodySmall,
                           ),
                         ),
+                      ],
                     ],
                   ),
-                  const SizedBox(height: 22),
-                  MapPreview(
-                    height: 300,
-                    stats: [
-                      ('5+', 'Kaynak'),
-                      ('${Catalog.districts.length}', 'İlçe'),
-                    ],
-                  ),
-                  const SizedBox(height: 18),
-                  const _CategoryStrip(),
-                  const SizedBox(height: 26),
-                  const DisplayTitle(
-                    'İzmir\'de bu akşam',
-                    accent: 'ne var?',
-                    size: 44,
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Konserden sergiye şehrin etkinlikleri tek haritada; tarihi, mekânı ve fiyatıyla.',
-                    style: text.bodyLarge?.copyWith(color: AppColors.inkSoft),
-                  ),
-                  const SizedBox(height: 26),
-                  _RoleCard(
-                    role: UserRole.user,
-                    icon: Icons.explore_rounded,
-                    title: 'Etkinlik keşfet',
-                    body: 'Yakınındaki etkinlikleri bul, filtrele, kaydet.',
-                    onTap: () => context.go(Routes.login(UserRole.user)),
-                  ),
-                  const SizedBox(height: 12),
-                  _RoleCard(
-                    role: UserRole.organizer,
-                    icon: Icons.campaign_rounded,
-                    title: 'Organizatörüm',
-                    body: 'Etkinliklerini yayınla, haritada görünür ol.',
-                    onTap: () => context.go(Routes.login(UserRole.organizer)),
-                  ),
-                  if (!Env.hasSupabase) ...[
-                    const SizedBox(height: 18),
-                    Center(
-                      child: Text(
-                        'Demo modu · veriler yalnızca bu cihazda',
-                        style: text.bodySmall,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           ),
         ),
       ),
