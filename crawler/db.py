@@ -103,3 +103,39 @@ def upsert_venue(name: str, address: str | None, lat: float, lng: float) -> str:
     return client().rpc(
         "upsert_venue", {"p_name": name, "p_address": address, "p_lat": lat, "p_lng": lng}
     ).execute().data
+
+
+def similar_priced_events(venue_name: str, category: str, limit: int = 15) -> list[dict[str, Any]]:
+    """Fiyat tahmini için örnekler: aynı mekân ya da aynı kategorideki fiyatı bilinen etkinlikler.
+    Tahminler örnek olarak kullanılmaz (tahminden tahmin üretilmesin)."""
+    venue_id = match_venue(venue_name)
+    flt = f"category.eq.{category}" + (f",venue_id.eq.{venue_id}" if venue_id else "")
+    res = (
+        client().table("events")
+        .select("title,category,price_min,price_max,starts_at,venue:venues(name)")
+        .in_("price_status", ["listed", "looked_up"])
+        .or_(flt)
+        .order("starts_at", desc=True)
+        .limit(limit)
+        .execute()
+    )
+    return [
+        {**{k: r[k] for k in ("title", "category", "price_min", "price_max")},
+         "venue": (r.get("venue") or {}).get("name")}
+        for r in res.data or []
+    ]
+
+
+def unknown_price_events(limit: int) -> list[dict[str, Any]]:
+    """Fiyat ajanının geriye dönük iş listesi: yaklaşan, yayınlanmış, fiyatı bilinmeyen etkinlikler."""
+    res = (
+        client().table("events")
+        .select("id,title,description,starts_at,ends_at,category,ticket_url,venue:venues(name,address)")
+        # price_status = 'unknown' ile aynı (constraint); migration öncesi satırları da yakalar.
+        .is_("price_min", "null").is_("price_max", "null").eq("status", "published")
+        .gte("starts_at", now_iso())
+        .order("starts_at")
+        .limit(limit)
+        .execute()
+    )
+    return res.data or []

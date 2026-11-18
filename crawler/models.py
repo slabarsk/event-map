@@ -12,7 +12,8 @@ Category = Literal[
     "cinema", "talk", "sports", "family", "party", "other",
 ]
 
-PriceStatus = Literal["listed", "looked_up", "estimated"]
+# unknown: fiyat yok (fiyat ajanı arar). Bkz. 20261118000200_price_status_unknown.sql
+PriceStatus = Literal["unknown", "listed", "looked_up", "estimated"]
 
 
 class RawItem(BaseModel):
@@ -67,7 +68,7 @@ class NormalizedEvent(BaseModel):
     category: Category
     price_min: float | None
     price_max: float | None
-    price_status: PriceStatus = "listed"
+    price_status: PriceStatus = "unknown"
     price_source_url: str | None = None
     ticket_url: str | None = None
     image_url: str | None = None

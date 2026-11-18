@@ -1,11 +1,10 @@
 """Bir kaynağın uçtan uca işlenmesi (Stage 4: first flow).
 
 fetch -> içerik hash'i değişmediyse atla (Claude çağrılmaz) -> Claude ile çıkarım
--> doğrulama -> mekân eşleştirme / geocode -> upsert (events + event_sources)
--> crawl_runs kaydı.
+-> doğrulama -> fiyat yoksa fiyat ajanı (price/) -> mekân eşleştirme / geocode
+-> upsert (events + event_sources) -> crawl_runs kaydı.
 
-Stage 5'te eklenecekler: fiyat ajanı (price/) ve kaynaklar arası duplicate merge (dedup/).
-O zamana kadar fiyatı olmayan etkinlik fiyatsız yazılır.
+Stage 5'te eklenecek: kaynaklar arası duplicate merge (dedup/).
 """
 from __future__ import annotations
 
@@ -20,6 +19,7 @@ from .config import PRICE_IN_PER_MTOK, PRICE_OUT_PER_MTOK
 from .extract import extract_events, normalize
 from .geocode import resolve_venue
 from .models import NormalizedEvent, RawItem, Usage
+from .price import PriceAgent
 from .sources.base import SourceAdapter
 
 log = logging.getLogger(__name__)
@@ -60,8 +60,10 @@ def run_source(
     dry_run: bool = False,
     limit: int | None = None,
     refresh: bool = False,
+    price_agent: PriceAgent | None = None,
 ) -> RunStats:
     stats = RunStats()
+    prices = price_agent or PriceAgent(claude)
     run_id = None if dry_run else db.start_run(source["id"])
     if limit is not None:
         adapter.max_items = limit
@@ -71,7 +73,7 @@ def run_source(
         for item in adapter.fetch():
             stats.items_fetched += 1
             try:
-                _process_item(source, item, claude, stats, dry_run)
+                _process_item(source, item, claude, stats, dry_run, prices)
             except Exception as exc:  # tek öğe hatası koşuyu durdurmaz
                 stats.error(item.url, exc)
     except Exception as exc:  # adapter tümden bozuldu (site değişti, engellendi...)
@@ -79,6 +81,7 @@ def run_source(
         stats.error(f"adapter:{source['slug']}", exc)
     finally:
         stats.items_skipped += adapter.skipped
+        stats.usage.add(prices.usage)
         if run_id:
             db.finish_run(
                 run_id,
@@ -96,7 +99,8 @@ def run_source(
 
 
 def _process_item(
-    source: dict[str, Any], item: RawItem, claude: anthropic.Anthropic, stats: RunStats, dry_run: bool
+    source: dict[str, Any], item: RawItem, claude: anthropic.Anthropic, stats: RunStats, dry_run: bool,
+    prices: PriceAgent,
 ) -> None:
     chash = db.content_hash(item.text)
     if not dry_run and db.seen_hash(source["id"], item.external_id) == chash:
@@ -114,6 +118,7 @@ def _process_item(
         if ev is None:  # geçmiş/tarihsiz/İzmir dışı: yazılmaz
             log.info("elendi: %s | %s | izmir=%s", raw.title, raw.starts_at, raw.in_izmir)
             continue
+        ev = _fill_price(prices, ev, item.url, stats)
         if dry_run:
             print(ev.model_dump_json(indent=2))
             continue
@@ -127,6 +132,50 @@ def _process_item(
     # Hatalı öğeyi "görüldü" işaretleme: bir sonraki koşuda yeniden denensin.
     if not dry_run and not item_failed:
         db.mark_seen(source["id"], item.external_id, chash, len(extracted))
+
+
+def _fill_price(prices: PriceAgent, ev: NormalizedEvent, page_url: str | None, stats: RunStats) -> NormalizedEvent:
+    """Fiyat ajanı hatası etkinliği düşürmez: fiyat bilinmiyor olarak yazılır."""
+    try:
+        return prices.fill(ev, page_url=page_url)
+    except Exception as exc:
+        stats.error(f"fiyat:{ev.title}", exc)
+        return ev
+
+
+def backfill_prices(claude: anthropic.Anthropic, *, limit: int, dry_run: bool = False,
+                    price_agent: PriceAgent | None = None) -> RunStats:
+    """Daha önce fiyatsız yazılmış yaklaşan etkinlikler için fiyat ajanını çalıştırır.
+    Bu sayfalar seen_items'ta olduğu için normal crawl onları yeniden işlemez."""
+    stats = RunStats()
+    prices = price_agent or PriceAgent(claude)
+    for row in db.unknown_price_events(limit):
+        stats.items_fetched += 1
+        venue = row.get("venue") or {}
+        ev = NormalizedEvent(
+            title=row["title"], description=row.get("description"),
+            starts_at=row["starts_at"], ends_at=row.get("ends_at"),
+            venue_name=venue.get("name") or "", address=venue.get("address"),
+            category=row["category"], price_min=None, price_max=None,
+            ticket_url=row.get("ticket_url"),
+        )
+        ev = _fill_price(prices, ev, None, stats)
+        if ev.price_status == "unknown":
+            continue
+        stats.events_found += 1
+        if dry_run:
+            print(ev.model_dump_json(indent=2))
+            continue
+        try:
+            db.update_event(row["id"], {
+                "price_min": ev.price_min, "price_max": ev.price_max,
+                "price_status": ev.price_status, "price_source_url": ev.price_source_url,
+            })
+            stats.events_upserted += 1
+        except Exception as exc:
+            stats.error(f"fiyat-yaz:{row['id']}", exc)
+    stats.usage.add(prices.usage)
+    return stats
 
 
 def event_row(ev: NormalizedEvent, venue_id: str) -> dict[str, Any]:

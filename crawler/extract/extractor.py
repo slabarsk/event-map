@@ -116,7 +116,8 @@ def normalize(ev: ExtractedEvent, item: RawItem, *, now: datetime | None = None)
         category=category,
         price_min=pmin,
         price_max=pmax,
-        price_status="listed",
+        # Fiyat yoksa "listed" değil: fiyat ajanı bunları arar ya da tahmin eder.
+        price_status="listed" if pmin is not None else "unknown",
         ticket_url=ev.ticket_url,
         image_url=ev.image_url,
     )

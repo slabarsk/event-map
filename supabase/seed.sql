@@ -27,7 +27,7 @@ select public.upsert_venue('Urla Bağ Evi Galerisi',            'Urla/İzmir',  
 select public.upsert_venue('Alsancak Kıbrıs Şehitleri Caddesi','Alsancak/İzmir',                                        38.4361, 27.1431);
 
 -- Etkinlikler -----------------------------------------------------------------
--- price_status: listed (ücretsiz dahil), looked_up, estimated
+-- price_status: listed (ücretsiz dahil), looked_up, estimated, unknown (fiyat yok)
 insert into public.events (title, description, starts_at, ends_at, venue_id, category,
                            price_min, price_max, price_status, price_source_url, ticket_url, status, origin)
 select t.title, t.descr,

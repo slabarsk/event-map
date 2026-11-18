@@ -5,6 +5,7 @@ Kullanım (repo kökünden):
     python -m crawler.run --source aassm        # tek kaynak
     python -m crawler.run --source aassm --dry-run --limit 2   # DB'ye yazmadan, 2 sayfayla dene
     python -m crawler.run --refresh             # daha önce işlenmiş sayfaları da yeniden çek
+    python -m crawler.run --price-backfill --limit 5   # fiyatı bilinmeyen eski etkinliklere fiyat ajanı
 """
 from __future__ import annotations
 
@@ -16,7 +17,7 @@ import anthropic
 
 from . import db
 from .config import env
-from .pipeline import run_source
+from .pipeline import backfill_prices, run_source
 from .sources import ADAPTERS, get_adapter
 
 
@@ -26,11 +27,24 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--dry-run", action="store_true", help="DB'ye yazma, çıkarılan etkinlikleri yazdır")
     ap.add_argument("--limit", type=int, help="kaynak başına en fazla bu kadar yeni sayfa çek (maliyet testi)")
     ap.add_argument("--refresh", action="store_true", help="daha önce işlenmiş sayfaları da yeniden çek")
+    ap.add_argument("--price-backfill", action="store_true",
+                    help="crawl etmeden, fiyatı bilinmeyen yaklaşan etkinliklere fiyat ajanını çalıştır (--limit ile)")
     ap.add_argument("-v", "--verbose", action="store_true")
     args = ap.parse_args(argv)
 
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     claude = anthropic.Anthropic(api_key=env("ANTHROPIC_API_KEY", required=True))
+
+    if args.price_backfill:
+        if args.limit is None:
+            ap.error("--price-backfill için --limit verin (maliyet koruması)")
+        stats = backfill_prices(claude, limit=args.limit, dry_run=args.dry_run)
+        logging.info(
+            "fiyat: etkinlik=%d fiyatlanan=%d yazılan=%d hata=%d token=%d/%d",
+            stats.items_fetched, stats.events_found, stats.events_upserted, stats.errors,
+            stats.usage.input_tokens, stats.usage.output_tokens,
+        )
+        return 0
 
     if args.dry_run:
         sources = [{"id": "dry", "slug": s} for s in (args.source or [])]

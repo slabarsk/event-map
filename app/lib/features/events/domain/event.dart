@@ -1,5 +1,8 @@
 /// Fiyatın nereden geldiği. Ücretsiz etkinlik `price = 0` ve [listed] olur.
 enum PriceStatus {
+  /// Fiyat bilinmiyor (kaynakta yok, fiyat ajanı da bulamadı/tahmin etmedi).
+  unknown,
+
   /// Kaynak sayfada yazıyor.
   listed,
 
@@ -11,12 +14,14 @@ enum PriceStatus {
   estimated;
 
   static PriceStatus parse(String? value) => switch (value) {
+    'listed' => listed,
     'looked_up' => lookedUp,
     'estimated' => estimated,
-    _ => listed,
+    _ => unknown,
   };
 
   String get dbValue => switch (this) {
+    unknown => 'unknown',
     listed => 'listed',
     lookedUp => 'looked_up',
     estimated => 'estimated',
@@ -39,7 +44,7 @@ class MapEvent {
     this.endsAt,
     this.priceMin,
     this.priceMax,
-    this.priceStatus = PriceStatus.listed,
+    this.priceStatus = PriceStatus.unknown,
     this.priceSourceUrl,
     this.imageUrl,
     this.ticketUrl,
