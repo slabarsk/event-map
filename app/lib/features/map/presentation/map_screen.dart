@@ -101,6 +101,26 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             ),
           ),
         ),
+        // Pinch ve çift dokunma da çalışır; butonlar fare/trackpad (web, simülatör) için.
+        Positioned(
+          right: 16,
+          bottom: bottomInset + 124,
+          child: Column(
+            children: [
+              GlassIconButton(
+                icon: Icons.add_rounded,
+                tooltip: 'Yakınlaştır',
+                onPressed: () => _zoomBy(1),
+              ),
+              const SizedBox(height: 10),
+              GlassIconButton(
+                icon: Icons.remove_rounded,
+                tooltip: 'Uzaklaştır',
+                onPressed: () => _zoomBy(-1),
+              ),
+            ],
+          ),
+        ),
         if (widget.showTiles)
           Positioned(
             right: 10,
@@ -110,6 +130,11 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           ),
       ],
     );
+  }
+
+  void _zoomBy(double delta) {
+    final camera = _map.camera;
+    _map.move(camera.center, (camera.zoom + delta).clamp(8.0, 18.0));
   }
 
   TileLayer _tiles() {
