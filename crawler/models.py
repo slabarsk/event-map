@@ -41,6 +41,7 @@ class ExtractedEvent(BaseModel):
     ticket_url: str | None
     image_url: str | None
     in_izmir: bool  # etkinlik İzmir'de mi
+    requires_registration: bool  # bilet yerine başvuru formu / ön kayıtla katılım
 
 
 class ExtractionResult(BaseModel):
@@ -72,3 +73,4 @@ class NormalizedEvent(BaseModel):
     price_source_url: str | None = None
     ticket_url: str | None = None
     image_url: str | None = None
+    requires_registration: bool = False

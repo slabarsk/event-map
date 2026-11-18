@@ -158,6 +158,7 @@ def backfill_prices(claude: anthropic.Anthropic, *, limit: int, dry_run: bool = 
             venue_name=venue.get("name") or "", address=venue.get("address"),
             category=row["category"], price_min=None, price_max=None,
             ticket_url=row.get("ticket_url"),
+            requires_registration=bool(row.get("requires_registration")),
         )
         ev = _fill_price(prices, ev, None, stats)
         if ev.price_status == "unknown":
@@ -192,6 +193,7 @@ def event_row(ev: NormalizedEvent, venue_id: str) -> dict[str, Any]:
         "price_source_url": ev.price_source_url,
         "ticket_url": ev.ticket_url,
         "image_url": ev.image_url,
+        "requires_registration": ev.requires_registration,
     }
 
 

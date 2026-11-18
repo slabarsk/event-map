@@ -63,6 +63,15 @@ abstract final class EventFormat {
     PriceStatus.listed || PriceStatus.unknown => null,
   };
 
+  /// Başvuruyla katılınan etkinlikte "Başvuru ile" etiketi.
+  static String? registrationBadge(MapEvent e) =>
+      e.requiresRegistration ? 'Başvuru ile' : null;
+
+  /// Fiyat metni gösterilsin mi? Başvuruyla katılınan ve fiyatı bilinmeyen
+  /// etkinlikte "Fiyat bilinmiyor" yerine yalnızca "Başvuru ile" etiketi çıkar.
+  static bool showsPrice(MapEvent e) =>
+      !(e.requiresRegistration && e.priceStatus == PriceStatus.unknown);
+
   static String _amount(double v) =>
       NumberFormat.decimalPattern('tr').format(v.round());
 }

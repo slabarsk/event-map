@@ -106,6 +106,7 @@ class EventCard extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     final cat = eventCategoryOf(event.category);
     final badge = EventFormat.priceBadge(event);
+    final registration = EventFormat.registrationBadge(event);
     return GlassCard(
       padding: const EdgeInsets.all(16),
       radius: 24,
@@ -149,15 +150,17 @@ class EventCard extends StatelessWidget {
             runSpacing: 8,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Text(
-                EventFormat.price(event),
-                style: text.titleSmall?.copyWith(
-                  color: event.isFree ? AppColors.success : AppColors.ink,
-                  fontWeight: FontWeight.w700,
+              if (EventFormat.showsPrice(event))
+                Text(
+                  EventFormat.price(event),
+                  style: text.titleSmall?.copyWith(
+                    color: event.isFree ? AppColors.success : AppColors.ink,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
               if (badge != null)
                 PriceBadge(label: badge, status: event.priceStatus),
+              if (registration != null) RegistrationBadge(label: registration),
               if (event.sourceCount > 1)
                 Text(
                   '${event.sourceCount} kaynak',
@@ -178,14 +181,42 @@ class PriceBadge extends StatelessWidget {
   final PriceStatus status;
 
   @override
+  Widget build(BuildContext context) => _Pill(
+    label: label,
+    color: status == PriceStatus.estimated ? AppColors.amber : AppColors.sky,
+    tooltip: status == PriceStatus.estimated
+        ? 'Kaynakta fiyat yoktu; benzer etkinliklerden tahmin edildi.'
+        : 'Fiyat bilet sayfasında bulundu.',
+  );
+}
+
+/// "Başvuru ile" etiketi: bilet yerine başvuru formu / ön kayıt.
+class RegistrationBadge extends StatelessWidget {
+  const RegistrationBadge({super.key, required this.label});
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => _Pill(
+    label: label,
+    color: AppColors.teal,
+    tooltip: 'Katılım bilet yerine başvuru formu ya da ön kayıtla.',
+  );
+}
+
+class _Pill extends StatelessWidget {
+  const _Pill({
+    required this.label,
+    required this.color,
+    required this.tooltip,
+  });
+  final String label;
+  final Color color;
+  final String tooltip;
+
+  @override
   Widget build(BuildContext context) {
-    final color = status == PriceStatus.estimated
-        ? AppColors.amber
-        : AppColors.sky;
     return Tooltip(
-      message: status == PriceStatus.estimated
-          ? 'Kaynakta fiyat yoktu; benzer etkinliklerden tahmin edildi.'
-          : 'Fiyat bilet sayfasında bulundu.',
+      message: tooltip,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(

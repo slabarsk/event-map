@@ -5,6 +5,8 @@ Kaynakta fiyatı olmayan (price_status = "unknown") etkinlik için:
 2. Bulamazsa Firecrawl search ile web'de arar, ilk birkaç sonucu çeker. Bulursa looked_up.
 3. Yine yoksa Claude, aynı mekân/kategorideki fiyatı bilinen etkinliklerden bir aralık
    tahmin eder: estimated (uygulamada her zaman "Tahmini" rozeti).
+   Başvuru/kayıtla katılınan etkinliklerde (requires_registration) tahmin yapılmaz;
+   fiyat bilinmiyor kalır, uygulama "Başvuru ile" etiketi gösterir.
 
 Maliyet: aynı etkinliğin farklı tarihleri (aynı başlık + mekân) koşu boyunca tek kez
 aranır; çekilen sayfalar da önbellekte tutulur. Aramada en fazla MAX_SEARCH_PAGES sayfa çekilir.
@@ -110,7 +112,10 @@ class PriceAgent:
             if found:
                 return found
 
-        # 3) Tahmin
+        # 3) Tahmin (başvuruyla katılımda yanıltıcı olur: genelde ücretsiz/kontenjanlı)
+        if ev.requires_registration:
+            log.info("başvuru ile katılım, fiyat tahmin edilmedi: %s", ev.title)
+            return None
         return self._estimate(ev)
 
     def _search(self, ev: NormalizedEvent, tried: set[str]) -> dict[str, Any] | None:

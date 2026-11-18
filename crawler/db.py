@@ -130,7 +130,8 @@ def unknown_price_events(limit: int) -> list[dict[str, Any]]:
     """Fiyat ajanının geriye dönük iş listesi: yaklaşan, yayınlanmış, fiyatı bilinmeyen etkinlikler."""
     res = (
         client().table("events")
-        .select("id,title,description,starts_at,ends_at,category,ticket_url,venue:venues(name,address)")
+        .select("id,title,description,starts_at,ends_at,category,ticket_url,requires_registration,"
+                "venue:venues(name,address)")
         # price_status = 'unknown' ile aynı (constraint); migration öncesi satırları da yakalar.
         .is_("price_min", "null").is_("price_max", "null").eq("status", "published")
         .gte("starts_at", now_iso())
