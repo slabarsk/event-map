@@ -9,6 +9,19 @@ class AuthFailure implements Exception {
   String toString() => message;
 }
 
+/// Giriş ekranının rolü ile hesabın rolü uyuşmadığında gösterilecek mesaj.
+String roleMismatchMessage(AppUser user, UserRole expected) {
+  if (expected == UserRole.admin) {
+    return 'Bu hesabın yönetim paneline erişim yetkisi yok.';
+  }
+  if (user.isAdmin) {
+    return 'Bu bir admin hesabı. Yönetim paneli girişini (/admin) kullan.';
+  }
+  return user.isOrganizer
+      ? 'Bu bir organizatör hesabı. Organizatör girişini kullan.'
+      : 'Bu hesap organizatör değil. Kullanıcı girişini kullan.';
+}
+
 abstract class AuthRepository {
   /// Oturum değiştiğinde (giriş, çıkış, profil güncellemesi) yeni değeri yayar.
   Stream<AppUser?> authStateChanges();

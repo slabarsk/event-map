@@ -119,6 +119,31 @@ flutter pub get
 flutter run
 ```
 
+**Admin paneli (web):**
+
+Organizatör başvuruları `/#/admin` adresindeki panelden onaylanır ya da reddedilir. Panel aynı Flutter uygulamasının parçasıdır (`app/lib/features/admin/`); yalnızca `role = 'admin'` olan hesaplar girebilir, diğerleri ana akışa yönlendirilir. Okuma `profiles_select_admin_organizers` RLS politikasıyla, karar `set_organizer_status` RPC'siyle yapılır. Admin yalnızca organizatör profillerini ve organizatörlerin e-postasını (`admin_organizer_email`) görür; normal kullanıcıların verisi panele açılmaz.
+
+```bash
+cd app
+# Yalnızca SUPABASE_URL ve SUPABASE_ANON_KEY içeren geçici bir dosya; service role anahtarı ASLA eklenmez.
+flutter run -d chrome --dart-define-from-file=/geçici/yol/defines.json
+# Tarayıcıda: http://localhost:<port>/#/admin
+```
+
+**Yayın (GitHub Pages):** `.github/workflows/admin-pages.yml`, `main`'e gelen her `app/` değişikliğinde yalnızca panelden oluşan derlemeyi (`--dart-define=ADMIN_ONLY=true`) yayınlar: <https://slabarsk.github.io/event-map/#/admin>. Bu derlemede uygulamanın geri kalanı yoktur. Her rota panele gider, admin olmayan bir oturum (ör. Google ile giriş) hemen kapatılır. İş yalnızca repo public iken çalışır. İlk yayın için Settings → Pages → Source: **GitHub Actions** seçilir ve Supabase → Authentication → URL Configuration → Redirect URLs listesine `https://slabarsk.github.io/event-map/` eklenir (Google girişi dönüşü için).
+
+Anahtar verilmezse panel demo modunda örnek başvurularla açılır; giriş ekranında "Google ile devam et" bir demo admin hesabı oluşturur.
+
+**Bir kullanıcıyı admin yapmak:** Kullanıcı önce uygulamadan normal hesap açar. Ardından Supabase Dashboard → SQL Editor'da (service role ile) çalıştırılır:
+
+```sql
+update public.profiles
+   set role = 'admin', organizer_status = null, updated_at = now()
+ where id = (select id from auth.users where email = 'admin@ornek.com');
+```
+
+Geri almak için aynı sorguda `role = 'user'` kullanılır. Rol, `authenticated` kullanıcılar tarafından değiştirilemez (kolon yetkisi yok), bu yüzden bu adım yalnızca Dashboard'dan ya da `service_role` ile yapılabilir.
+
 **Eval:**
 
 ```bash

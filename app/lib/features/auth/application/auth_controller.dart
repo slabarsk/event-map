@@ -71,11 +71,14 @@ class AuthController extends AsyncNotifier<AppUser?> {
     state = AsyncData(await _repo.updateProfile(user));
   }
 
-  Future<void> signOut() async {
+  /// [resetOnboarding] false ise geçici onboarding sıfırlaması atlanır
+  /// (ör. admin panelinin yetkisiz oturumu kapatması).
+  Future<void> signOut({bool resetOnboarding = true}) async {
     final user = state.value;
     _signingOut = true;
     try {
-      if (resetOnboardingOnSignOut &&
+      if (resetOnboarding &&
+          resetOnboardingOnSignOut &&
           user != null &&
           user.onboardingCompleted) {
         try {

@@ -6,6 +6,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app.dart';
 import 'core/config/env.dart';
+import 'features/admin/application/admin_providers.dart';
+import 'features/admin/data/admin_repository.dart';
 import 'features/auth/application/auth_controller.dart';
 import 'features/auth/data/auth_repository.dart';
 import 'features/auth/data/local_auth_repository.dart';
@@ -22,6 +24,7 @@ Future<void> main() async {
 
   final AuthRepository repository;
   final EventsRepository events;
+  final AdminRepository admin;
   if (Env.hasSupabase) {
     await Supabase.initialize(
       url: Env.supabaseUrl,
@@ -29,9 +32,11 @@ Future<void> main() async {
     );
     repository = SupabaseAuthRepository(Supabase.instance.client, prefs);
     events = SupabaseEventsRepository(Supabase.instance.client);
+    admin = SupabaseAdminRepository(Supabase.instance.client);
   } else {
     repository = LocalAuthRepository(prefs);
     events = DemoEventsRepository();
+    admin = DemoAdminRepository();
   }
 
   runApp(
@@ -39,6 +44,7 @@ Future<void> main() async {
       overrides: [
         authRepositoryProvider.overrideWithValue(repository),
         eventsRepositoryProvider.overrideWithValue(events),
+        adminRepositoryProvider.overrideWithValue(admin),
       ],
       child: const EventMapApp(),
     ),

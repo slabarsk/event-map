@@ -110,15 +110,21 @@ class LocalAuthRepository implements AuthRepository {
   @override
   Future<AppUser?> signInWithGoogle({required UserRole role}) async {
     // Demo modunda Google hesabı taklit edilir; gerçek OAuth Supabase ile çalışır.
-    final email = role == UserRole.organizer
-        ? 'demo.organizator@gmail.com'
-        : 'demo.kullanici@gmail.com';
+    // Admin paneli de demo modunda denenebilsin diye Google ile admin girişi
+    // bir demo admin hesabı açar.
+    final email = switch (role) {
+      UserRole.organizer => 'demo.organizator@gmail.com',
+      UserRole.admin => 'demo.admin@gmail.com',
+      UserRole.user => 'demo.kullanici@gmail.com',
+    };
     final accounts = _accounts();
     if (!accounts.containsKey(email)) {
       return signUp(
-        fullName: role == UserRole.organizer
-            ? 'Demo Organizatör'
-            : 'Demo Kullanıcı',
+        fullName: switch (role) {
+          UserRole.organizer => 'Demo Organizatör',
+          UserRole.admin => 'Demo Admin',
+          UserRole.user => 'Demo Kullanıcı',
+        },
         email: email,
         password: _randomId(),
         role: role,
@@ -169,11 +175,7 @@ class LocalAuthRepository implements AuthRepository {
 
   void _ensureRole(AppUser user, UserRole expected) {
     if (user.role == expected) return;
-    throw AuthFailure(
-      user.isOrganizer
-          ? 'Bu bir organizatör hesabı. Organizatör girişini kullan.'
-          : 'Bu hesap organizatör değil. Kullanıcı girişini kullan.',
-    );
+    throw AuthFailure(roleMismatchMessage(user, expected));
   }
 
   static String _randomId() {

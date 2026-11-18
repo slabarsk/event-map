@@ -10,6 +10,10 @@ abstract final class Env {
     'MAPBOX_PUBLIC_TOKEN',
   );
 
+  /// `--dart-define=ADMIN_ONLY=true`: yalnızca yönetim paneli derlemesi
+  /// (GitHub Pages). Tüm rotalar panele gider; admin olmayan oturum kapatılır.
+  static const adminOnly = bool.fromEnvironment('ADMIN_ONLY');
+
   static bool get hasSupabase =>
       supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty;
 

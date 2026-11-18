@@ -57,11 +57,7 @@ class SupabaseAuthRepository implements AuthRepository {
     final user = await _loadProfile(res.user!);
     if (user.role != role) {
       await _client.auth.signOut();
-      throw AuthFailure(
-        user.isOrganizer
-            ? 'Bu bir organizatör hesabı. Organizatör girişini kullan.'
-            : 'Bu hesap organizatör değil. Kullanıcı girişini kullan.',
-      );
+      throw AuthFailure(roleMismatchMessage(user, role));
     }
     return user;
   }
@@ -101,11 +97,20 @@ class SupabaseAuthRepository implements AuthRepository {
       () => _client.auth.signInWithOAuth(
         OAuthProvider.google,
         redirectTo: kIsWeb
-            ? Uri.base.origin
+            ? _webRedirect()
             : 'com.eventmap.app://login-callback',
       ),
     );
     return null;
+  }
+
+  /// Uygulama alt yolda yayınlanıyorsa (GitHub Pages: /event-map/) dönüş o
+  /// yola yapılır; kökte çalışırken eski davranış (yalnızca origin) korunur.
+  static String _webRedirect() {
+    final path = Uri.base.path;
+    return path.isEmpty || path == '/'
+        ? Uri.base.origin
+        : '${Uri.base.origin}$path';
   }
 
   @override
