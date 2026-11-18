@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../config/env.dart';
 import '../../features/admin/presentation/admin_login_screen.dart';
 import '../../features/admin/presentation/admin_shell.dart';
 import '../../features/admin/presentation/application_detail_screen.dart';
@@ -40,6 +41,9 @@ abstract final class Routes {
   static String adminApplication(String id) => '$admin/applications/$id';
 }
 
+/// Testlerde admin-only derlemeyi taklit etmek için override edilir.
+final adminOnlyProvider = Provider<bool>((ref) => Env.adminOnly);
+
 final routerProvider = Provider<GoRouter>((ref) {
   final refresh = ValueNotifier(0);
   ref.listen(authControllerProvider, (_, _) => refresh.value++);
@@ -48,8 +52,11 @@ final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: Routes.splash,
     refreshListenable: refresh,
-    redirect: (context, state) =>
-        _redirect(ref.read(authControllerProvider), state),
+    redirect: (context, state) => _redirect(
+      ref.read(authControllerProvider),
+      state,
+      adminOnly: ref.read(adminOnlyProvider),
+    ),
     routes: [
       GoRoute(path: Routes.splash, builder: (_, _) => const SplashScreen()),
       GoRoute(path: Routes.welcome, builder: (_, _) => const WelcomeScreen()),
@@ -131,7 +138,11 @@ UserRole _authRole(GoRouterState s) => s.pathParameters['role'] == 'organizer'
 ///
 /// `/admin` altı ayrı kurallıdır: giriş yoksa admin girişi, admin değilse ana
 /// akış, admin ise panel. Admin'in açılış ekranı paneldir.
-String? _redirect(AsyncValue<AppUser?> auth, GoRouterState state) {
+String? _redirect(
+  AsyncValue<AppUser?> auth,
+  GoRouterState state, {
+  bool adminOnly = false,
+}) {
   final path = state.uri.path;
   final atAuthFlow = path == Routes.welcome || path.startsWith('/auth/');
   final atAdmin = path == Routes.admin || path.startsWith('${Routes.admin}/');
@@ -153,11 +164,20 @@ String? _redirect(AsyncValue<AppUser?> auth, GoRouterState state) {
     return next;
   }
 
+  // Admin-only derlemede uygulamanın geri kalanı yoktur; admin olmayan oturum
+  // giriş ekranına döner ve orada kapatılır.
+  if (adminOnly && !atAdmin) {
+    return user?.isAdmin == true ? Routes.admin : Routes.adminLogin;
+  }
+
   if (atAdmin) {
     if (user == null) {
       return path == Routes.adminLogin ? null : Routes.adminLogin;
     }
-    if (!user.isAdmin) return Routes.home;
+    if (!user.isAdmin) {
+      if (!adminOnly) return Routes.home;
+      return path == Routes.adminLogin ? null : Routes.adminLogin;
+    }
     return path == Routes.adminLogin ? Routes.admin : null;
   }
 

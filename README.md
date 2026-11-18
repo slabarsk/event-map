@@ -130,6 +130,8 @@ flutter run -d chrome --dart-define-from-file=/geçici/yol/defines.json
 # Tarayıcıda: http://localhost:<port>/#/admin
 ```
 
+**Yayın (GitHub Pages):** `.github/workflows/admin-pages.yml`, `main`'e gelen her `app/` değişikliğinde yalnızca panelden oluşan derlemeyi (`--dart-define=ADMIN_ONLY=true`) yayınlar: <https://slabarsk.github.io/event-map/#/admin>. Bu derlemede uygulamanın geri kalanı yoktur. Her rota panele gider, admin olmayan bir oturum (ör. Google ile giriş) hemen kapatılır. İş yalnızca repo public iken çalışır. İlk yayın için Settings → Pages → Source: **GitHub Actions** seçilir ve Supabase → Authentication → URL Configuration → Redirect URLs listesine `https://slabarsk.github.io/event-map/` eklenir (Google girişi dönüşü için).
+
 Anahtar verilmezse panel demo modunda örnek başvurularla açılır; giriş ekranında "Google ile devam et" bir demo admin hesabı oluşturur.
 
 **Bir kullanıcıyı admin yapmak:** Kullanıcı önce uygulamadan normal hesap açar. Ardından Supabase Dashboard → SQL Editor'da (service role ile) çalıştırılır:

@@ -24,8 +24,10 @@ class _FakeAuth implements AuthRepository {
   Stream<AppUser?> authStateChanges() => const Stream.empty();
   @override
   Future<AppUser?> currentUser() async => user;
+  int signOuts = 0;
+
   @override
-  Future<void> signOut() async {}
+  Future<void> signOut() async => signOuts++;
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -40,13 +42,18 @@ AppUser _user(UserRole role) => AppUser(
 );
 
 class _Harness {
-  _Harness(this.tester, {AppUser? user, bool loggedIn = true})
-    : repo = DemoAdminRepository(),
-      auth = _FakeAuth(loggedIn ? user ?? _user(UserRole.admin) : null);
+  _Harness(
+    this.tester, {
+    AppUser? user,
+    bool loggedIn = true,
+    this.adminOnly = false,
+  }) : repo = DemoAdminRepository(),
+       auth = _FakeAuth(loggedIn ? user ?? _user(UserRole.admin) : null);
 
   final WidgetTester tester;
   final DemoAdminRepository repo;
   final _FakeAuth auth;
+  final bool adminOnly;
   late final ProviderContainer container;
 
   GoRouter get router => container.read(routerProvider);
@@ -58,6 +65,7 @@ class _Harness {
       overrides: [
         authRepositoryProvider.overrideWithValue(auth),
         adminRepositoryProvider.overrideWithValue(repo),
+        adminOnlyProvider.overrideWithValue(adminOnly),
       ],
     );
     addTearDown(container.dispose);
@@ -126,6 +134,36 @@ void main() {
     testWidgets('admin açılışta panele gider', (tester) async {
       final h = _Harness(tester);
       await h.pump(Routes.splash);
+      expect(find.byType(ApplicationsScreen), findsOneWidget);
+      expect(h.location, Routes.admin);
+    });
+  });
+
+  group('admin-only derleme', () {
+    testWidgets('uygulama rotaları admin girişine gider', (tester) async {
+      final h = _Harness(tester, loggedIn: false, adminOnly: true);
+      await h.pump(Routes.welcome);
+      expect(find.byType(AdminLoginScreen), findsOneWidget);
+      expect(h.location, Routes.adminLogin);
+    });
+
+    testWidgets('admin olmayan oturum kapatılır ve uyarı gösterilir', (
+      tester,
+    ) async {
+      final h = _Harness(tester, user: _user(UserRole.user), adminOnly: true);
+      await h.pump(Routes.home);
+
+      expect(find.byType(AdminLoginScreen), findsOneWidget);
+      expect(h.auth.signOuts, 1);
+      expect(
+        find.text('Bu hesabın yönetim paneline erişim yetkisi yok.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('admin uygulama rotasından panele yönlenir', (tester) async {
+      final h = _Harness(tester, adminOnly: true);
+      await h.pump(Routes.map);
       expect(find.byType(ApplicationsScreen), findsOneWidget);
       expect(h.location, Routes.admin);
     });

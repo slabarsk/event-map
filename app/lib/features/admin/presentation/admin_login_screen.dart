@@ -26,6 +26,29 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
   bool _submitted = false;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _rejectNonAdmin(ref.read(authControllerProvider).value),
+    );
+  }
+
+  /// Admin olmayan bir oturum (ör. Google dönüşü) panelde tutulmaz.
+  Future<void> _rejectNonAdmin(AppUser? user) async {
+    if (user == null || user.isAdmin || !mounted) return;
+    await ref
+        .read(authControllerProvider.notifier)
+        .signOut(resetOnboarding: false);
+    if (mounted) {
+      showMessage(
+        context,
+        roleMismatchMessage(user, UserRole.admin),
+        error: true,
+      );
+    }
+  }
+
+  @override
   void dispose() {
     _email.dispose();
     _password.dispose();
@@ -62,6 +85,10 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(
+      authControllerProvider,
+      (_, next) => _rejectNonAdmin(next.value),
+    );
     final text = Theme.of(context).textTheme;
     return Scaffold(
       body: AuroraBackground(
