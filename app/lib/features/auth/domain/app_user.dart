@@ -1,9 +1,15 @@
 enum UserRole {
   user,
-  organizer;
+  organizer,
 
-  static UserRole parse(String? value) =>
-      value == 'organizer' ? UserRole.organizer : UserRole.user;
+  /// Yalnızca SQL ile atanır (bkz. README); kayıt ekranlarında seçilemez.
+  admin;
+
+  static UserRole parse(String? value) => switch (value) {
+    'organizer' => UserRole.organizer,
+    'admin' => UserRole.admin,
+    _ => UserRole.user,
+  };
 }
 
 enum OrganizerStatus {
@@ -168,6 +174,7 @@ class AppUser {
   final DateTime? kvkkConsentAt;
 
   bool get isOrganizer => role == UserRole.organizer;
+  bool get isAdmin => role == UserRole.admin;
 
   String get firstName {
     final trimmed = fullName.trim();

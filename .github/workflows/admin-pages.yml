@@ -1,0 +1,63 @@
+name: admin-pages
+
+# Yönetim panelini (yalnızca admin derlemesi) GitHub Pages'e yayınlar:
+#   https://slabarsk.github.io/event-map/#/admin
+# GitHub Pages ücretsiz planda yalnızca public repolarda çalışır; repo private
+# iken iş atlanır. Gerekli secret'lar: SUPABASE_URL, SUPABASE_ANON_KEY
+# (publishable anahtar). SUPABASE_SERVICE_ROLE_KEY bu derlemeye ASLA girmez.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - app/**
+      - .github/workflows/admin-pages.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: admin-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: ${{ !github.event.repository.private }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter test
+      - name: Admin derlemesi
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          flutter build web --release \
+            --base-href "/${{ github.event.repository.name }}/" \
+            --dart-define=ADMIN_ONLY=true \
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
+            --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: app/build/web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}#/admin
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
