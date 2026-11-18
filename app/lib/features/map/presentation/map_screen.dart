@@ -56,7 +56,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             ),
           ),
           children: [
-            if (widget.showTiles) _tiles(),
+            if (widget.showTiles)
+              ColorFiltered(colorFilter: _softTiles, child: _tiles()),
             MarkerLayer(
               markers: [
                 for (final g in groups.value ?? const <VenueGroup>[])
@@ -137,10 +138,33 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     _map.move(camera.center, (camera.zoom + delta).clamp(8.0, 18.0));
   }
 
+  /// Haritayı hafif renkli yapar: doygunluğu %55'e indirir ve %15 beyaza
+  /// karıştırır. Böylece kategori renkli pinler altlıkta kaybolmaz.
+  static const _softTiles = ColorFilter.matrix(<double>[
+    // satır: R, G, B, A, ofset (0-255)
+    0.85 * (0.55 + 0.45 * 0.2126),
+    0.85 * (0.45 * 0.7152),
+    0.85 * (0.45 * 0.0722),
+    0,
+    38,
+    0.85 * (0.45 * 0.2126),
+    0.85 * (0.55 + 0.45 * 0.7152),
+    0.85 * (0.45 * 0.0722),
+    0,
+    38,
+    0.85 * (0.45 * 0.2126),
+    0.85 * (0.45 * 0.7152),
+    0.85 * (0.55 + 0.45 * 0.0722),
+    0,
+    38,
+    0, 0, 0, 1, 0,
+  ]);
+
   TileLayer _tiles() {
     if (Env.hasMapbox) {
       return TileLayer(
-        urlTemplate: 'https://api.mapbox.com/styles/v1/mapbox/light-v11/tiles/256/{z}/{x}/{y}@2x?access_token={accessToken}',
+        // streets-v12 (su mavi, parklar yeşil); _softTiles ile soldurulur.
+        urlTemplate: 'https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/256/{z}/{x}/{y}@2x?access_token={accessToken}',
         additionalOptions: const {'accessToken': Env.mapboxPublicToken},
         userAgentPackageName: 'com.eventmap.event_map',
         maxNativeZoom: 20,
