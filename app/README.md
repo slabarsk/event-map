@@ -36,7 +36,7 @@ Karşılama → Kullanıcı / Organizatör seçimi
 Alt menü: Ana sayfa · Harita · Profil
 ```
 
-**Harita:** Yaklaşan yayınlanmış etkinlikler mekân başına tek pin olarak gösterilir. Pin rengi mekândaki ilk etkinliğin kategorisinden gelir, birden çok etkinlik varsa adet rozeti çıkar. Pine dokununca mekândaki etkinlikler tarih (İzmir saati), fiyat ve fiyat rozetiyle listelenir: `estimated` her zaman **Tahmini**, `looked_up` **Bilet sayfasından** olarak etiketlenir.
+**Harita:** Yaklaşan yayınlanmış etkinlikler mekân başına tek pin olarak gösterilir. Pin rengi mekândaki ilk etkinliğin kategorisinden gelir, birden çok etkinlik varsa adet rozeti çıkar. Pine dokununca mekândaki etkinlikler tarih (İzmir saati), fiyat ve fiyat rozetiyle listelenir: `estimated` her zaman **Tahmini**, `looked_up` **Bilet sayfasından** olarak etiketlenir. Bilet yerine başvuru formu ya da ön kayıtla katılınan etkinliklerde **Başvuru ile** etiketi çıkar; bunlara fiyat tahmini yapılmaz.
 
 | Rol | Onboarding adımları |
 |---|---|

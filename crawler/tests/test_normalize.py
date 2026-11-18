@@ -16,7 +16,7 @@ def _ev(**kw) -> ExtractedEvent:
     base = dict(
         title="Senfoni Konseri", description=None, starts_at="2026-11-14T20:00:00+03:00",
         ends_at=None, venue_name=None, address=None, category="concert", price_min=None,
-        price_max=None, is_free=None, ticket_url=None, image_url=None, in_izmir=True,
+        price_max=None, is_free=None, ticket_url=None, image_url=None, in_izmir=True, requires_registration=False,
     )
     return ExtractedEvent(**{**base, **kw})
 

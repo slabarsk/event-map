@@ -71,7 +71,7 @@ def _extracted(title="Senfoni Konseri", venue=None):
     return ExtractedEvent(
         title=title, description=None, starts_at=NEXT_WEEK, ends_at=None,
         venue_name=venue, address=None, category="concert", price_min=250, price_max=450,
-        is_free=None, ticket_url=None, image_url=None, in_izmir=True,
+        is_free=None, ticket_url=None, image_url=None, in_izmir=True, requires_registration=False,
     )
 
 

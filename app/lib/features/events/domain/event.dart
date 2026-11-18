@@ -51,6 +51,7 @@ class MapEvent {
     this.venueAddress,
     this.distanceM,
     this.sourceCount = 0,
+    this.requiresRegistration = false,
   });
 
   final String id;
@@ -83,6 +84,10 @@ class MapEvent {
   /// Etkinliğin bulunduğu kaynak sayısı (duplicate merge sonrası).
   final int sourceCount;
 
+  /// Bilet yerine başvuru formu / ön kayıtla katılım (çocuk atölyeleri gibi).
+  /// Bu etkinliklere fiyat tahmini yapılmaz; "Başvuru ile" etiketi gösterilir.
+  final bool requiresRegistration;
+
   bool get isFree => priceMin == 0 && (priceMax ?? 0) == 0;
 
   factory MapEvent.fromRow(Map<String, dynamic> row) => MapEvent(
@@ -105,6 +110,7 @@ class MapEvent {
     lng: (row['lng'] as num).toDouble(),
     distanceM: _num(row['distance_m']),
     sourceCount: (row['source_count'] as num?)?.toInt() ?? 0,
+    requiresRegistration: row['requires_registration'] == true,
   );
 
   static DateTime? _date(Object? v) =>

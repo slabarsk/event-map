@@ -214,3 +214,33 @@ def test_backfill_eski_fiyatsiz_etkinlikleri_gunceller(fake, monkeypatch, web):
     assert stats.events_upserted == 1
     ev = fake.events["ev-9"]
     assert (ev["price_status"], ev["price_min"], ev["price_max"]) == ("estimated", 150, 300)
+
+
+# ---------------------------------------------------------------- başvuru ile katılım
+
+
+def test_basvuru_ile_katilimda_tahmin_yapilmaz(web):
+    claude = FakeClaude(estimate=PriceEstimate(price_min=150, price_max=300, reasoning="r"))
+    ev = _event(ticket=None).model_copy(update={"requires_registration": True})
+    out = PriceAgent(claude, search=False, similar=lambda v, c: []).fill(ev)
+
+    assert out.price_status == "unknown" and out.price_min is None
+    assert out.requires_registration
+    assert claude.calls == []  # tahmin için Claude çağrılmaz
+
+
+def test_basvuru_ile_katilimda_bilet_sayfasindaki_fiyat_yine_yazilir(web):
+    web.pages[TICKET] = "Başvuru ücreti 100 TL"
+    ev = _event().model_copy(update={"requires_registration": True})
+    out = PriceAgent(FakeClaude(finds=[_found(100)]), search=False, similar=lambda v, c: []).fill(ev)
+    assert (out.price_status, out.price_min) == ("looked_up", 100)
+
+
+def test_basvuru_bilgisi_normalize_ve_db_satirina_gecer(fake, monkeypatch):
+    _claude_returning(monkeypatch, lambda item: [_no_price(requires_registration=True, ticket_url=None)])
+    agent = PriceAgent(FakeClaude(), search=False, similar=lambda v, c: [])
+    pipeline.run_source(SOURCE, FakeAdapter([("u1", "sayfa")]), claude=None, price_agent=agent)
+
+    (ev,) = fake.events.values()
+    assert ev["requires_registration"] is True
+    assert ev["price_status"] == "unknown"

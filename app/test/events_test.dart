@@ -66,6 +66,46 @@ void main() {
       expect(EventFormat.price(_event()), 'Fiyat bilinmiyor');
     });
 
+    test('başvuru ile katılım: etiket var, bilinmeyen fiyat metni yok', () {
+      final unknown = MapEvent.fromRow({
+        'id': 'a',
+        'title': 'Atölye',
+        'starts_at': '2026-11-20T10:00:00+00:00',
+        'category': 'workshop',
+        'price_status': 'unknown',
+        'venue_id': 'v',
+        'venue_name': 'AASSM',
+        'lat': 38.4,
+        'lng': 27.1,
+        'requires_registration': true,
+      });
+      expect(unknown.requiresRegistration, isTrue);
+      expect(EventFormat.registrationBadge(unknown), 'Başvuru ile');
+      expect(EventFormat.showsPrice(unknown), isFalse);
+      expect(EventFormat.priceBadge(unknown), isNull);
+
+      // Ücretli başvuruda fiyat yine gösterilir.
+      final paid = MapEvent(
+        id: 'b',
+        title: 't',
+        startsAt: DateTime.utc(2026, 11, 20),
+        category: 'workshop',
+        venueId: 'v',
+        venueName: 'V',
+        lat: 38.4,
+        lng: 27.1,
+        priceMin: 100,
+        priceMax: 100,
+        priceStatus: PriceStatus.listed,
+        requiresRegistration: true,
+      );
+      expect(EventFormat.showsPrice(paid), isTrue);
+      expect(EventFormat.price(paid), '100 ₺');
+
+      expect(EventFormat.registrationBadge(_event()), isNull);
+      expect(EventFormat.showsPrice(_event()), isTrue);
+    });
+
     test('unknown durumu "Fiyat bilinmiyor" gösterir, rozet yok', () {
       final e = _event(status: PriceStatus.unknown);
       expect(EventFormat.price(e), 'Fiyat bilinmiyor');
