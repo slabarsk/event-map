@@ -57,11 +57,7 @@ class SupabaseAuthRepository implements AuthRepository {
     final user = await _loadProfile(res.user!);
     if (user.role != role) {
       await _client.auth.signOut();
-      throw AuthFailure(
-        user.isOrganizer
-            ? 'Bu bir organizatör hesabı. Organizatör girişini kullan.'
-            : 'Bu hesap organizatör değil. Kullanıcı girişini kullan.',
-      );
+      throw AuthFailure(roleMismatchMessage(user, role));
     }
     return user;
   }
