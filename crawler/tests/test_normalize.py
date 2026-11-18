@@ -67,3 +67,10 @@ def test_tek_mekanli_kaynakta_salon_adi_mekan_acmaz():
     ev = normalize(_ev(venue_name="AASSM Büyük Salon", address="Salon girişi"), item, now=NOW)
     assert ev.venue_name == "Ahmet Adnan Saygun Sanat Merkezi"
     assert ev.address == "Konak/İzmir"
+
+
+def test_suren_sergi_kalir_bitmis_etkinlik_elenir():
+    suren = _ev(category="exhibition", starts_at="2026-10-15T16:00:00+03:00", ends_at="2026-11-30T18:00:00+03:00")
+    assert normalize(suren, ITEM, now=NOW) is not None
+    bitmis = _ev(starts_at="2026-11-06T20:00:00+03:00")
+    assert normalize(bitmis, ITEM, now=NOW) is None

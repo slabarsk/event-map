@@ -16,6 +16,7 @@ Sana bir sayfanın metni verilir. Sayfadaki GERÇEK etkinlikleri (konser, tiyatr
 
 Kurallar:
 - Yalnızca sayfada yazanlara dayan. Bilgi yoksa null bırak; uydurma ve tahmin etme (fiyat dahil).
+- Kaynak ipuçlarında detail_page: True varsa sayfa TEK bir etkinliğin detay sayfasıdır: yalnızca o ana etkinliği (ve kendi farklı tarihlerini) çıkar; "diğer etkinlikler", "yaklaşan etkinlikler", menü veya kenar çubuğundaki başka etkinlikleri yok say.
 - Etkinlik olmayan sayfalarda (haber, hakkımızda, bilet satın alma adımı vb.) boş liste döndür.
 - starts_at / ends_at: ISO 8601, Türkiye saati, örn. 2026-11-14T20:30:00+03:00. Yıl yoksa verilen "şu an" tarihine göre en yakın gelecek tarihi seç. Saat yoksa saat kısmı için 00:00 kullanma; starts_at'i null bırak.
 - Tekrarlayan gösterimler (aynı oyunun farklı günleri) için her tarih ayrı bir etkinlik olsun.
@@ -69,11 +70,14 @@ def normalize(ev: ExtractedEvent, item: RawItem, *, now: datetime | None = None)
         return None
 
     starts = _parse_dt(ev.starts_at)
-    if starts is None or starts < now - timedelta(days=1) or starts > now + timedelta(days=365):
+    if starts is None or starts > now + timedelta(days=365):
         return None
     ends = _parse_dt(ev.ends_at)
     if ends is not None and ends < starts:
         ends = None
+    # Geçmiş etkinlik elenir; ama hâlâ süren sergi/festival (bitişi gelecekte) kalır.
+    if (ends or starts) < now - timedelta(days=1):
+        return None
 
     # Tek mekânlı kaynaklarda (AASSM gibi) salon adı ya da kısaltma ("Büyük Salon",
     # "AASSM") yeni mekân açmasın: adapter'ın verdiği mekân kullanılır.

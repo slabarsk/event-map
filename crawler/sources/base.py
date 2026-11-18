@@ -85,7 +85,7 @@ class ListingAdapter(SourceAdapter):
             except Exception as exc:  # tek sayfa hatası koşuyu durdurmaz
                 log.warning("%s: %s alınamadı: %s", self.slug, url, exc)
                 continue
-            yield RawItem(url=url, external_id=url, text=text, hint=dict(self.hint))
+            yield RawItem(url=url, external_id=url, text=text, hint={**self.hint, "detail_page": True})
             fetchers.polite_sleep()
 
 

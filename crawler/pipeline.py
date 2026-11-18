@@ -111,7 +111,8 @@ def _process_item(
     item_failed = False
     for idx, raw in enumerate(extracted):
         ev = normalize(raw, item)
-        if ev is None:
+        if ev is None:  # geçmiş/tarihsiz/İzmir dışı: yazılmaz
+            log.info("elendi: %s | %s | izmir=%s", raw.title, raw.starts_at, raw.in_izmir)
             continue
         if dry_run:
             print(ev.model_dump_json(indent=2))
