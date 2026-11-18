@@ -27,3 +27,19 @@ jobs:
           version: latest
       - run: supabase db start # migration'lar + seed.sql
       - run: supabase test db # supabase/tests/database/*.sql (pgTAP)
+
+  app:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.50.0" # app/README.md
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
