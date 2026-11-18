@@ -17,7 +17,7 @@ insert into public.sources (slug, name, type, base_url, enabled, notes) values
 on conflict (slug) do nothing;
 
 -- Mekânlar --------------------------------------------------------------------
-select public.upsert_venue('Ahmet Adnan Saygun Sanat Merkezi', 'Mimar Kemalettin, Gazi Osman Paşa Blv., Konak/İzmir', 38.4230, 27.1387);
+select public.upsert_venue('Ahmet Adnan Saygun Sanat Merkezi', 'Mehmet Ali Akman Mah., Mithatpaşa Cad. No:1087, Konak/İzmir', 38.39694, 27.07833);
 select public.upsert_venue('Kültürpark Açık Hava Tiyatrosu',   'Kültürpark, Konak/İzmir',                              38.4343, 27.1463);
 select public.upsert_venue('Konak Pier',                       'Kemeraltı, Konak/İzmir',                                38.4205, 27.1288);
 select public.upsert_venue('İzmir Devlet Opera ve Balesi',     'Cumhuriyet Blv., Alsancak/İzmir',                       38.4358, 27.1426);

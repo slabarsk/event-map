@@ -40,9 +40,9 @@ typedef _Venue = (
 const _aassm = (
   'venue-aassm',
   'Ahmet Adnan Saygun Sanat Merkezi',
-  'Mimar Kemalettin, Gazi Osman Paşa Blv., Konak/İzmir',
-  38.4230,
-  27.1387,
+  'Mehmet Ali Akman Mah., Mithatpaşa Cad. No:1087, Konak/İzmir',
+  38.39694,
+  27.07833,
 );
 const _kulturpark = (
   'venue-kulturpark',
