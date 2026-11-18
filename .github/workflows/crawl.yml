@@ -1,4 +1,7 @@
-# Günlük crawl. Her kaynak koşusu Supabase'deki crawl_runs tablosuna yazılır.
+# Haftalık crawl: Cuma sabahı, haftalık sunumdan (Cuma 11:30) önce. Diğer günlerde
+# yalnızca elle tetiklenir (Actions → crawl → Run workflow). Daha önce işlenmiş sayfalar
+# yeniden çekilmez; yalnızca yeni etkinlikler Firecrawl ve Claude'a gider.
+# Her kaynak koşusu Supabase'deki crawl_runs tablosuna yazılır.
 # Gerekli repo secret'ları (Settings → Secrets and variables → Actions):
 #   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, ANTHROPIC_API_KEY, FIRECRAWL_API_KEY
 #   MAPBOX_SECRET_TOKEN (DB'de olmayan yeni mekânlar için; yoksa o etkinlikler atlanır)
@@ -6,13 +9,21 @@ name: crawl
 
 on:
   schedule:
-    - cron: "17 3 * * *" # her gün 06:17 İzmir saati
+    - cron: "17 3 * * 5" # Cuma 06:17 İzmir saati (03:17 UTC)
   workflow_dispatch:
     inputs:
       source:
         description: "Tek kaynak slug'ı (boş: etkin tüm kaynaklar)"
         required: false
         default: ""
+      limit:
+        description: "Kaynak başına en fazla yeni sayfa (boş: adapter varsayılanı, 40)"
+        required: false
+        default: ""
+      refresh:
+        description: "Daha önce işlenmiş sayfaları da yeniden çek (pahalı)"
+        type: boolean
+        default: false
 
 concurrency:
   group: crawl
@@ -41,9 +52,11 @@ jobs:
           FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
           MAPBOX_SECRET_TOKEN: ${{ secrets.MAPBOX_SECRET_TOKEN }}
           SOURCE: ${{ inputs.source }}
+          LIMIT: ${{ inputs.limit }}
+          REFRESH: ${{ inputs.refresh }}
         run: |
-          if [ -n "$SOURCE" ]; then
-            python -m crawler.run --source "$SOURCE"
-          else
-            python -m crawler.run
-          fi
+          args=()
+          [ -n "$SOURCE" ] && args+=(--source "$SOURCE")
+          [ -n "$LIMIT" ] && args+=(--limit "$LIMIT")
+          [ "$REFRESH" = "true" ] && args+=(--refresh)
+          python -m crawler.run "${args[@]}"

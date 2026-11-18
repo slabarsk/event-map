@@ -27,6 +27,7 @@ class FakeDb:
         monkeypatch.setattr(db, "finish_run", self.finish_run)
         monkeypatch.setattr(db, "seen_hash", lambda s, e: self.seen.get((s, e)))
         monkeypatch.setattr(db, "touch_seen", lambda s, e: None)
+        monkeypatch.setattr(db, "seen_ids", lambda s: {e for (src, e) in self.seen if src == s})
         monkeypatch.setattr(db, "mark_seen", lambda s, e, h, n: self.seen.__setitem__((s, e), h))
         monkeypatch.setattr(db, "event_id_for_source", self.event_id_for_source)
         monkeypatch.setattr(db, "insert_event", self.insert_event)
@@ -145,3 +146,37 @@ def test_adapter_cokerse_kosu_fatal_olur(fake, monkeypatch):
 
     stats = pipeline.run_source(SOURCE, Broken(), claude=None)
     assert stats.fatal and fake.runs["run-1"]["errors"] == 1
+
+
+def test_daha_once_islenen_sayfa_yeniden_cekilmez(fake, monkeypatch):
+    from crawler.sources import base
+
+    scraped = []
+
+    def fake_scrape(mode, url, wait_ms=3000):
+        if url == "liste":
+            return "", ["d/1", "d/2", "d/3"]
+        scraped.append(url)
+        return f"sayfa {url}", []
+
+    monkeypatch.setattr(base, "_scrape", fake_scrape)
+    monkeypatch.setattr(base.fetchers, "polite_sleep", lambda: None)
+
+    class Listing(base.ListingAdapter):
+        slug = "aassm"
+        listing_urls = ["liste"]
+        link_pattern = r"^d/"
+        hint = {"default_venue": "Ahmet Adnan Saygun Sanat Merkezi"}
+
+    _claude_returning(monkeypatch, lambda item: [_extracted()])
+    pipeline.run_source(SOURCE, Listing(), claude=None, limit=2)
+    assert scraped == ["d/1", "d/2"]  # --limit
+
+    scraped.clear()
+    stats = pipeline.run_source(SOURCE, Listing(), claude=None)
+    assert scraped == ["d/3"]  # görülenler Firecrawl'a gitmez
+    assert stats.items_skipped == 2
+
+    scraped.clear()
+    pipeline.run_source(SOURCE, Listing(), claude=None, refresh=True)
+    assert scraped == ["d/1", "d/2", "d/3"]

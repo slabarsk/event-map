@@ -104,12 +104,12 @@ python -m venv .venv && source .venv/bin/activate
 pip install -r crawler/requirements.txt
 playwright install chromium               # yalnızca dinamik kaynaklar için (Stage 5)
 
-python -m crawler.run --source aassm --dry-run   # DB'ye yazmadan çıkarımı göster
+python -m crawler.run --source aassm --dry-run --limit 2   # DB'ye yazmadan, 2 sayfayla dene
 python -m crawler.run --source aassm             # Supabase'e yaz
 python -m pytest crawler                         # birim testleri
 ```
 
-Günlük koşu `.github/workflows/crawl.yml` ile her sabah 06:17'de (İzmir) çalışır; elle tetiklemek için Actions → crawl → Run workflow. Gerekli secret'lar dosyanın başında listelidir. Her koşu `crawl_runs` tablosuna yazılır.
+Zamanlanmış koşu `.github/workflows/crawl.yml` ile **Cuma 06:17'de** (İzmir), haftalık sunumdan önce çalışır; maliyeti düşük tutmak için diğer günlerde yalnızca elle tetiklenir (Actions → crawl → Run workflow; `limit` ve `refresh` seçenekleriyle). Daha önce işlenmiş sayfalar yeniden çekilmez, yalnızca yeni etkinlikler Firecrawl ve Claude'a gider. Günlük toplamaya geçmek için cron satırını `17 3 * * *` yapmak yeterli. Gerekli secret'lar dosyanın başında listelidir. Her koşu `crawl_runs` tablosuna yazılır.
 
 **Uygulama:**
 
