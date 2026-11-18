@@ -16,6 +16,8 @@ class VenueEventsSheet extends StatelessWidget {
   static Future<void> show(BuildContext context, VenueGroup group) {
     return showModalBottomSheet<void>(
       context: context,
+      // Alt menünün üstünde açılsın; yoksa son kart menünün arkasında kalır.
+      useRootNavigator: true,
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
@@ -41,7 +43,12 @@ class VenueEventsSheet extends StatelessWidget {
           width: 560,
           child: ListView(
             controller: scroll,
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+            padding: EdgeInsets.fromLTRB(
+              20,
+              12,
+              20,
+              32 + MediaQuery.viewPaddingOf(context).bottom,
+            ),
             children: [
               Center(
                 child: Container(

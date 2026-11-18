@@ -58,9 +58,15 @@ def run_source(
     claude: anthropic.Anthropic,
     *,
     dry_run: bool = False,
+    limit: int | None = None,
+    refresh: bool = False,
 ) -> RunStats:
     stats = RunStats()
     run_id = None if dry_run else db.start_run(source["id"])
+    if limit is not None:
+        adapter.max_items = limit
+    if not dry_run and not refresh:
+        adapter.skip_ids = frozenset(db.seen_ids(source["id"]))
     try:
         for item in adapter.fetch():
             stats.items_fetched += 1
@@ -72,6 +78,7 @@ def run_source(
         stats.fatal = True
         stats.error(f"adapter:{source['slug']}", exc)
     finally:
+        stats.items_skipped += adapter.skipped
         if run_id:
             db.finish_run(
                 run_id,
@@ -104,7 +111,8 @@ def _process_item(
     item_failed = False
     for idx, raw in enumerate(extracted):
         ev = normalize(raw, item)
-        if ev is None:
+        if ev is None:  # geçmiş/tarihsiz/İzmir dışı: yazılmaz
+            log.info("elendi: %s | %s | izmir=%s", raw.title, raw.starts_at, raw.in_izmir)
             continue
         if dry_run:
             print(ev.model_dump_json(indent=2))

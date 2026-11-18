@@ -18,5 +18,5 @@ class AassmAdapter(ListingAdapter):
     hint = {
         "single_venue": True,
         "default_venue": "Ahmet Adnan Saygun Sanat Merkezi",
-        "default_address": "Mimar Kemalettin, Gazi Osman Paşa Blv., Konak/İzmir",
+        "default_address": "Mehmet Ali Akman Mah., Mithatpaşa Cad. No:1087, Konak/İzmir",
     }

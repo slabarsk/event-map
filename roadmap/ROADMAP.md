@@ -198,7 +198,7 @@ MAPBOX_SECRET_TOKEN=         # crawler (geocoding)
 - [x] Pipeline: fetch → temiz markdown (Firecrawl) → Claude ile **structured output** (JSON şema: name, date, venue, address, price, category) → venue eşleştirme ve geocode → upsert.
 - [x] `content_hash` değişmediyse Claude'u çağırma. Büyük maliyet tasarrufu buradan gelir.
 - [x] GitHub Actions cron'u kur, her çalışma `crawl_runs` tablosuna loglansın.
-- [ ] İlk canlı koşu: repo secret'larını gir, `--dry-run` ile AASSM çıktısını kontrol et, sonra cron'u elle tetikle.
+- [x] İlk canlı koşu: canlı Supabase projesi (eu-west-1), secret'lar, AASSM dry-run ve ilk yazım (12 sayfa → 8 etkinlik). Cron haftalık: Cuma 06:17.
 
 **Göster:** Cron tetiklenir, yeni etkinlik birkaç dakika içinde uygulamada pin olur.
 

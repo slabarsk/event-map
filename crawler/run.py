@@ -3,7 +3,8 @@
 Kullanım (repo kökünden):
     python -m crawler.run                       # etkinleştirilmiş tüm kaynaklar
     python -m crawler.run --source aassm        # tek kaynak
-    python -m crawler.run --source aassm --dry-run   # DB'ye yazmadan çıkarımı göster
+    python -m crawler.run --source aassm --dry-run --limit 2   # DB'ye yazmadan, 2 sayfayla dene
+    python -m crawler.run --refresh             # daha önce işlenmiş sayfaları da yeniden çek
 """
 from __future__ import annotations
 
@@ -23,6 +24,8 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Event Map crawler")
     ap.add_argument("--source", action="append", help="kaynak slug'ı (tekrarlanabilir); verilmezse hepsi")
     ap.add_argument("--dry-run", action="store_true", help="DB'ye yazma, çıkarılan etkinlikleri yazdır")
+    ap.add_argument("--limit", type=int, help="kaynak başına en fazla bu kadar yeni sayfa çek (maliyet testi)")
+    ap.add_argument("--refresh", action="store_true", help="daha önce işlenmiş sayfaları da yeniden çek")
     ap.add_argument("-v", "--verbose", action="store_true")
     args = ap.parse_args(argv)
 
@@ -47,7 +50,7 @@ def main(argv: list[str] | None = None) -> int:
             logging.warning("%s: adapter yok, atlandı", source["slug"])
             continue
         logging.info("== %s", source["slug"])
-        stats = run_source(source, get_adapter(source["slug"]), claude, dry_run=args.dry_run)
+        stats = run_source(source, get_adapter(source["slug"]), claude, dry_run=args.dry_run, limit=args.limit, refresh=args.refresh)
         logging.info(
             "%s: öğe=%d atlanan=%d bulunan=%d yazılan=%d hata=%d token=%d/%d",
             source["slug"], stats.items_fetched, stats.items_skipped, stats.events_found,

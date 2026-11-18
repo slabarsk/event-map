@@ -9,10 +9,14 @@ final eventsRepositoryProvider = Provider<EventsRepository>(
       throw UnimplementedError('eventsRepositoryProvider override edilmedi'),
 );
 
+/// Saat kaynağı; testlerde sabit bir anla override edilir.
+final clockProvider = Provider<DateTime Function()>((ref) => DateTime.now);
+
 /// Şu andan itibaren şehir genelindeki yayınlanmış etkinlikler.
 /// Filtreler ve "near me" Stage 5'te bu sorgunun parametreleri olarak eklenir.
 final upcomingEventsProvider = FutureProvider<List<MapEvent>>((ref) {
-  return ref.read(eventsRepositoryProvider).upcoming(from: DateTime.now());
+  final now = ref.read(clockProvider)();
+  return ref.read(eventsRepositoryProvider).upcoming(from: now);
 });
 
 /// Haritada pin olarak gösterilen mekân grupları.

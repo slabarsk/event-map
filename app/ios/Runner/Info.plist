@@ -66,5 +66,17 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<!-- Google girişi (Supabase OAuth) dönüşü: com.eventmap.app://login-callback -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.eventmap.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.eventmap.app</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

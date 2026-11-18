@@ -21,6 +21,10 @@ log = logging.getLogger(__name__)
 class SourceAdapter(ABC):
     slug: str
     max_items: int = 40
+    # Pipeline koşudan önce doldurur: daha önce işlenmiş öğeler yeniden çekilmez
+    # (Firecrawl kredisi harcanmaz). Atlananların sayısı `skipped`a yazılır.
+    skip_ids: frozenset[str] = frozenset()
+    skipped: int = 0
 
     @abstractmethod
     def fetch(self) -> Iterator[RawItem]:
@@ -73,13 +77,15 @@ class ListingAdapter(SourceAdapter):
                 if pattern.search(link):
                     detail_urls[link] = None
 
-        for url in list(detail_urls)[: self.max_items]:
+        new_urls = [u for u in detail_urls if u not in self.skip_ids]
+        self.skipped = len(detail_urls) - len(new_urls)
+        for url in new_urls[: self.max_items]:
             try:
                 text, _ = _scrape(self.detail_mode, url)
             except Exception as exc:  # tek sayfa hatası koşuyu durdurmaz
                 log.warning("%s: %s alınamadı: %s", self.slug, url, exc)
                 continue
-            yield RawItem(url=url, external_id=url, text=text, hint=dict(self.hint))
+            yield RawItem(url=url, external_id=url, text=text, hint={**self.hint, "detail_page": True})
             fetchers.polite_sleep()
 
 

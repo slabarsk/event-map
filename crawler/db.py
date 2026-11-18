@@ -42,6 +42,12 @@ def seen_hash(source_id: str, external_id: str) -> str | None:
     return res.data[0]["content_hash"] if res.data else None
 
 
+def seen_ids(source_id: str) -> set[str]:
+    """Bu kaynakta daha önce işlenmiş öğeler. Listing adapter'ları bunları yeniden çekmez."""
+    res = client().table("seen_items").select("external_id").eq("source_id", source_id).execute()
+    return {r["external_id"] for r in res.data or []}
+
+
 def mark_seen(source_id: str, external_id: str, chash: str, event_count: int) -> None:
     client().table("seen_items").upsert(
         {

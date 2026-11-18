@@ -15,8 +15,11 @@ class _FailingRepository implements EventsRepository {
       Future.error(const EventsFailure('Etkinlikler yüklenemedi.'));
 }
 
-Widget _app(EventsRepository repo) => ProviderScope(
-  overrides: [eventsRepositoryProvider.overrideWithValue(repo)],
+Widget _app(EventsRepository repo, {DateTime? now}) => ProviderScope(
+  overrides: [
+    eventsRepositoryProvider.overrideWithValue(repo),
+    if (now != null) clockProvider.overrideWithValue(() => now),
+  ],
   child: const MaterialApp(home: Scaffold(body: MapScreen(showTiles: false))),
 );
 
@@ -30,7 +33,7 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(1200, 1600));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    await tester.pumpWidget(_app(repo));
+    await tester.pumpWidget(_app(repo, now: now));
     await tester.pumpAndSettle();
 
     // Görünür alandaki pinler; Urla şehir merkezinden uzakta olabilir.
