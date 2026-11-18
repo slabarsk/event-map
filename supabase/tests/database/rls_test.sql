@@ -18,9 +18,9 @@ update public.profiles set role = 'admin' where id = '00000000-0000-0000-0000-00
 
 -- Veri: bir mekân, bir yayınlanmış ve bir pending etkinlik.
 select public.upsert_venue('Test Sahnesi', 'Konak/İzmir', 38.4230, 27.1387) as venue_id \gset
-insert into public.events (id, title, starts_at, venue_id, category, price_min, price_max, status, origin) values
-  ('10000000-0000-0000-0000-000000000001', 'Yayında Konser', now() + interval '2 hours', :'venue_id', 'concert', 0, 0, 'published', 'crawl'),
-  ('10000000-0000-0000-0000-000000000002', 'Bekleyen Oyun',  now() + interval '1 day',   :'venue_id', 'theatre', 100, 150, 'pending', 'crawl');
+insert into public.events (id, title, starts_at, venue_id, category, price_min, price_max, price_status, status, origin) values
+  ('10000000-0000-0000-0000-000000000001', 'Yayında Konser', now() + interval '2 hours', :'venue_id', 'concert', 0, 0, 'listed', 'published', 'crawl'),
+  ('10000000-0000-0000-0000-000000000002', 'Bekleyen Oyun',  now() + interval '1 day',   :'venue_id', 'theatre', 100, 150, 'listed', 'pending', 'crawl');
 
 -- Ayşe bir etkinliği kaydetmiş.
 insert into public.saved_events (user_id, event_id)

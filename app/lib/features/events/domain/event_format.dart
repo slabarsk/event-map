@@ -44,7 +44,9 @@ abstract final class EventFormat {
   static String price(MapEvent e) {
     final min = e.priceMin;
     final max = e.priceMax;
-    if (min == null && max == null) return 'Fiyat bilinmiyor';
+    if (e.priceStatus == PriceStatus.unknown || (min == null && max == null)) {
+      return 'Fiyat bilinmiyor';
+    }
     if (e.isFree) return 'Ücretsiz';
     final lo = min ?? max!;
     final hi = max ?? min!;
@@ -53,11 +55,12 @@ abstract final class EventFormat {
   }
 
   /// Fiyatın yanında gösterilen rozet. [PriceStatus.estimated] için her zaman
-  /// "Tahmini" döner (yol haritası kuralı).
+  /// "Tahmini" döner (yol haritası kuralı). Fiyat bilinmiyorsa rozet yoktur;
+  /// metin zaten "Fiyat bilinmiyor" der.
   static String? priceBadge(MapEvent e) => switch (e.priceStatus) {
     PriceStatus.estimated => 'Tahmini',
     PriceStatus.lookedUp => 'Bilet sayfasından',
-    PriceStatus.listed => null,
+    PriceStatus.listed || PriceStatus.unknown => null,
   };
 
   static String _amount(double v) =>

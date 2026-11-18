@@ -207,7 +207,7 @@ MAPBOX_SECRET_TOKEN=         # crawler (geocoding)
 **Hedef:** Tüm must-have'ler çalışıyor. Midterm demo.
 
 - [ ] **5+ kaynak:** Dinamik siteler için Playwright. Her kaynağın ayrı bir adapter dosyası olsun.
-- [ ] **Fiyat ajanı:** Fiyat yoksa önce etkinliğin bilet/detay sayfasına gider, gerekirse Firecrawl search kullanır, bulursa `looked_up` ve kaynak URL'si yazar. Bulamazsa Claude aynı mekân, kategori ve benzer etkinliklerden bir aralık tahmin eder, `estimated` yazar. UI'da her zaman "Tahmini" rozeti gösterilir.
+- [x] **Fiyat ajanı:** Fiyat yoksa önce etkinliğin bilet/detay sayfasına gider, gerekirse Firecrawl search kullanır, bulursa `looked_up` ve kaynak URL'si yazar. Bulamazsa Claude aynı mekân, kategori ve benzer etkinliklerden bir aralık tahmin eder, `estimated` yazar. UI'da her zaman "Tahmini" rozeti gösterilir.
 - [ ] **Duplicate merge:** Önce aday çiftler çıkarılır: aynı mekân ya da 200 m içinde (`ST_DWithin`), başlangıç saati ±2 saat, `pg_trgm` başlık benzerliği. Kesin eşleşmeler otomatik birleşir. Belirsiz olanlara Claude evet/hayır kararı verir. Kaynaklar `event_sources` altında toplanır.
 - [ ] **Harita ve filtreler:** Tarih (bugün, bu hafta sonu), kategori, ücretsiz/fiyat, mesafe. Pin kümeleme (clustering) ve etkinlik detay kartı.
 - [ ] **"Near me tonight":** `nl-search` Edge Function'ı. Claude soruyu `{categories, max_price, time_window, near_me, radius_m}` JSON'una çevirir, bu JSON `events_near` RPC'sine gider. Saat dilimi `Europe/Istanbul`. "Tonight" tanımı Stage 2 bulgularına göre konur.

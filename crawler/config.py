@@ -17,7 +17,11 @@ def env(name: str, default: str | None = None, *, required: bool = False) -> str
 
 
 # Modeller (Stage 9'da maliyet/kalite ayarı buradan yapılır)
-MODEL_FAST = os.getenv("CLAUDE_MODEL_FAST", "claude-haiku-5-5")  # çıkarım
+MODEL_FAST = os.getenv("CLAUDE_MODEL_FAST", "claude-haiku-5-5")  # çıkarım ve fiyat ajanı
+
+# Fiyat ajanı: bilet sayfasında fiyat yoksa Firecrawl search ile web'de ara.
+# Firecrawl kredisi harcar; kapatmak için PRICE_SEARCH=0.
+PRICE_SEARCH = os.getenv("PRICE_SEARCH", "1") != "0"
 
 # Maliyet hesabı için $/1M token. Tanımlı değilse crawl_runs.cost_usd boş kalır.
 # Güncel fiyatlar için Anthropic fiyat sayfasına bakın; kodda sabit tutulmaz.

@@ -97,3 +97,16 @@ def playwright_render(url: str, *, wait_ms: int = 3000) -> tuple[str, list[str]]
 
 def polite_sleep() -> None:
     time.sleep(REQUEST_DELAY_S)
+
+
+@retry(stop=stop_after_attempt(2), wait=wait_exponential(multiplier=2, min=2, max=10), reraise=True)
+def firecrawl_search(query: str, *, limit: int = 3) -> list[tuple[str, str]]:
+    """Web araması. (url, kısa açıklama) listesi döndürür; sayfalar burada çekilmez,
+    çağıran robots.txt kontrolüyle firecrawl_scrape eder."""
+    data = _firecrawl().search(query, limit=limit, location="Turkey", country="TR")
+    out = []
+    for r in getattr(data, "web", None) or []:
+        url = getattr(r, "url", None) or getattr(getattr(r, "metadata", None), "url", None)
+        if url:
+            out.append((url, f"{getattr(r, 'title', '') or ''} — {getattr(r, 'description', '') or ''}"))
+    return out

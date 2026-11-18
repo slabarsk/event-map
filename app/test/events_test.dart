@@ -66,6 +66,16 @@ void main() {
       expect(EventFormat.price(_event()), 'Fiyat bilinmiyor');
     });
 
+    test('unknown durumu "Fiyat bilinmiyor" gösterir, rozet yok', () {
+      final e = _event(status: PriceStatus.unknown);
+      expect(EventFormat.price(e), 'Fiyat bilinmiyor');
+      expect(EventFormat.priceBadge(e), isNull);
+      expect(PriceStatus.parse('unknown'), PriceStatus.unknown);
+      expect(PriceStatus.parse(null), PriceStatus.unknown);
+      expect(PriceStatus.parse('listed'), PriceStatus.listed);
+      expect(PriceStatus.unknown.dbValue, 'unknown');
+    });
+
     test('tahmini fiyat her zaman etiketlenir', () {
       expect(
         EventFormat.priceBadge(
