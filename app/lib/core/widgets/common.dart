@@ -19,12 +19,8 @@ class BrandMark extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(size * 0.34),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFF7836A), AppColors.coralDeep],
-        ),
+        // Logo görselinin köşe yarıçapıyla aynı (%22,5).
+        borderRadius: BorderRadius.circular(size * 0.225),
         boxShadow: [
           BoxShadow(
             color: AppColors.coral.withValues(alpha: 0.4),
@@ -33,10 +29,12 @@ class BrandMark extends StatelessWidget {
           ),
         ],
       ),
-      child: Icon(
-        Icons.location_on_rounded,
-        color: Colors.white,
-        size: size * 0.58,
+      child: Image.asset(
+        'assets/branding/logo.png',
+        width: size,
+        height: size,
+        filterQuality: FilterQuality.medium,
+        semanticLabel: 'Event Map logosu',
       ),
     );
     if (!showName) return mark;
