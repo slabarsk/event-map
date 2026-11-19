@@ -6,8 +6,36 @@ Plan 10 aşamadan oluşur. Her aşamada hedef, yapılacaklar ve haftalık sunumd
 
 ---
 
+## Güncel durum (19 Kasım 2026)
+
+Stage 3 ve Stage 4 tamamlandı. Stage 5'te fiyat ajanı ve yönetim paneli canlıda; kaynak sayısını artırma, duplicate merge, filtreler ve "near me tonight" sırada.
+
+**Canlıda çalışanlar**
+
+| Alan | Durum |
+|---|---|
+| Veri toplama | AASSM kaynağı canlı Supabase'e yazıyor. Cron haftalık (Cuma 06:17); daha önce görülen sayfalar atlanarak maliyet düşürüldü. |
+| Fiyat ajanı | Fiyatı olmayan etkinlikte önce bilet sayfasına, sonra web aramasına bakıyor; bulamazsa tahmin edip "Tahmini" olarak işaretliyor. |
+| Başvuru ile katılım | Ön kayıt ya da başvuru formuyla katılınan etkinlikler "Başvuru ile" etiketiyle gösteriliyor; bunlar için fiyat tahmini yapılmıyor. |
+| Harita | Yakınlaştırma butonları, hafif renkli altlık, mekâna dokununca açılan etkinlik listesi. |
+| Giriş | E-posta ve Google ile giriş web'de ve canlıda çalışıyor. Mobil dönüş için uygulama URL şeması iOS ve Android'de tanımlı. |
+| Yönetim paneli | Web'de yayında: [slabarsk.github.io/event-map/#/admin](https://slabarsk.github.io/event-map/#/admin). Admin, organizatör başvurularını listeleyip onaylıyor ya da reddediyor. Admin olmayan hesap panelde oturum açamıyor. |
+| CI | Her PR'da crawler testleri, veritabanı (pgTAP) testleri ve Flutter analyze + test çalışıyor. Panel, `main`'e gelen uygulama değişikliklerinde GitHub Pages'e otomatik yayınlanıyor. |
+
+**Sıradaki işler**
+
+1. Kaynak sayısını 5'e çıkarmak (her kaynak için ayrı adapter).
+2. Duplicate merge.
+3. Harita filtreleri ve pin kümeleme.
+4. "Near me tonight" doğal dil araması.
+5. Organizatörün etkinlik göndermesi ve kayıtlı etkinlikler.
+6. Google girişini iOS ve Android cihazda denemek.
+
+---
+
 ## İçindekiler
 
+- [Güncel durum](#güncel-durum-19-kasım-2026)
 - [0. Mimari kararlar](#0-mimari-kararlar)
 - [Rol dağılımı](#rol-dağılımı)
 - [Repo yapısı](#repo-yapısı)
@@ -184,7 +212,7 @@ MAPBOX_SECRET_TOKEN=         # crawler (geocoding)
 **Yapılacaklar:**
 
 - [x] Şema migration'ları ve RLS politikaları
-- [x] Auth: e-posta ve Google girişi. Organizatör rolünü admin onaylar.
+- [x] Auth: e-posta ve Google girişi. Organizatör rolünü admin onaylar. Google girişi canlıda (web) doğrulandı.
 - [x] İlk açılışta KVKK aydınlatma metni ve açık rıza ekranı
 - [x] Flutter: login, boş harita, `seed.sql` ile gelen sahte etkinliklerin pin olarak görünmesi
 
@@ -211,6 +239,8 @@ MAPBOX_SECRET_TOKEN=         # crawler (geocoding)
 - [ ] **Duplicate merge:** Önce aday çiftler çıkarılır: aynı mekân ya da 200 m içinde (`ST_DWithin`), başlangıç saati ±2 saat, `pg_trgm` başlık benzerliği. Kesin eşleşmeler otomatik birleşir. Belirsiz olanlara Claude evet/hayır kararı verir. Kaynaklar `event_sources` altında toplanır.
 - [ ] **Harita ve filtreler:** Tarih (bugün, bu hafta sonu), kategori, ücretsiz/fiyat, mesafe. Pin kümeleme (clustering) ve etkinlik detay kartı.
 - [ ] **"Near me tonight":** `nl-search` Edge Function'ı. Claude soruyu `{categories, max_price, time_window, near_me, radius_m}` JSON'una çevirir, bu JSON `events_near` RPC'sine gider. Saat dilimi `Europe/Istanbul`. "Tonight" tanımı Stage 2 bulgularına göre konur.
+- [x] **Başvuru ile katılım:** Ön kayıt ya da başvuru formuyla katılınan etkinlikler işaretlenir (`requires_registration`), uygulamada "Başvuru ile" etiketi çıkar ve bu etkinlikler için fiyat tahmini yapılmaz.
+- [x] **Yönetim paneli (web):** Admin, organizatör başvurularını onaylar ya da reddeder. Yalnızca panel içeren ayrı bir derleme GitHub Pages'te yayında; admin olmayan oturum kapatılır.
 - [ ] **Organizatör paneli** (etkinlik gönder, yayın için admin onayı) ve **kayıtlı etkinlikler**.
 
 **Göster:** Midterm demosu, Demo Day a) ve b) senaryolarının ilk hali.
