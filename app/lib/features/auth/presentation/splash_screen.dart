@@ -11,18 +11,20 @@ class SplashScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Scaffold(
       body: AuroraBackground(
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              BrandMark(size: 64, showName: false),
-              SizedBox(height: 28),
-              SizedBox.square(
+        // Logo, native açılış ekranındaki logoyla aynı boyutta ve tam
+        // ortada; geçişte kıpırdamasın diye yükleme göstergesi ayrı konumlanır.
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            BrandMark(size: 120, showName: false),
+            Align(
+              alignment: Alignment(0, 0.32),
+              child: SizedBox.square(
                 dimension: 22,
                 child: CircularProgressIndicator(strokeWidth: 2.4),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
