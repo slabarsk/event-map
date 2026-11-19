@@ -1,0 +1,10 @@
+<!doctype html><html lang="tr"><body>
+<a href="https://bornova.bel.tr/haber">Haber</a>
+<div id="loadEvents"></div><button id="loadMore" hidden>Daha fazla</button>
+<script>
+setTimeout(() => {
+ document.querySelector('#loadEvents').innerHTML =
+  '<div class="event-container"><a href="https://bornova.bel.tr/yeni-sergi?utm_source=site">Sergi</a>' +
+  '<a href="https://bornova.bel.tr/yeni-sergi">Detay</a><a href="https://example.org/yeni">Dış link</a></div>';
+}, 150);
+</script></body></html>

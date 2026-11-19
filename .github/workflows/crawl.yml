@@ -44,6 +44,8 @@ jobs:
 
       - run: pip install -r crawler/requirements.txt
 
+      - run: python -m playwright install --with-deps chromium
+
       - name: Crawl
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}

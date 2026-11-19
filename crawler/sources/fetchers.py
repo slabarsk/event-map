@@ -8,6 +8,7 @@ from __future__ import annotations
 import re
 import time
 from functools import lru_cache
+from html.parser import HTMLParser
 from urllib.parse import urljoin, urlparse
 from urllib.robotparser import RobotFileParser
 
@@ -60,6 +61,47 @@ def html_links(html: str, base_url: str) -> list[str]:
     return list(seen)
 
 
+def section_links(html: str, base_url: str, section_id: str) -> list[str]:
+    """Belirli bir bölümdeki anchor'lar; boş bölüm geçerli, kayıp bölüm site değişikliğidir."""
+    class SectionParser(HTMLParser):
+        void_tags = {"area", "base", "br", "col", "embed", "hr", "img", "input",
+                     "link", "meta", "param", "source", "track", "wbr"}
+
+        def __init__(self):
+            super().__init__(convert_charrefs=True)
+            self.depth = 0
+            self.section_depth = None
+            self.found = False
+            self.links: dict[str, None] = {}
+
+        def handle_starttag(self, tag, attrs):
+            attrs = dict(attrs)
+            if attrs.get("id") == section_id:
+                self.section_depth = self.depth
+                self.found = True
+            if self.section_depth is not None and tag == "a" and attrs.get("href"):
+                self.links[urljoin(base_url, attrs["href"])] = None
+            if tag not in self.void_tags:
+                self.depth += 1
+
+        def handle_startendtag(self, tag, attrs):
+            self.handle_starttag(tag, attrs)
+            if tag not in self.void_tags:
+                self.handle_endtag(tag)
+
+        def handle_endtag(self, tag):
+            if tag not in self.void_tags:
+                self.depth -= 1
+                if self.depth == self.section_depth:
+                    self.section_depth = None
+
+    parser = SectionParser()
+    parser.feed(html)
+    if not parser.found:
+        raise RuntimeError(f"Etkinlik bölümü bulunamadı: #{section_id} ({base_url})")
+    return list(parser.links)
+
+
 @lru_cache(maxsize=1)
 def _firecrawl():
     from firecrawl import Firecrawl
@@ -86,13 +128,72 @@ def playwright_render(url: str, *, wait_ms: int = 3000) -> tuple[str, list[str]]
         browser = p.chromium.launch()
         try:
             page = browser.new_page(user_agent=USER_AGENT, locale="tr-TR", timezone_id="Europe/Istanbul")
-            page.goto(url, wait_until="networkidle", timeout=45_000)
+            response = page.goto(url, wait_until="domcontentloaded", timeout=45_000)
+            if response is None or not response.ok:
+                raise RuntimeError(f"Sayfa alınamadı: {url} (HTTP {response.status if response else '?'})")
             page.wait_for_timeout(wait_ms)
             text = page.inner_text("body")
             links = page.eval_on_selector_all("a[href]", "els => els.map(e => e.href)")
         finally:
             browser.close()
     return text[:MAX_TEXT_CHARS], list(dict.fromkeys(links))
+
+
+def playwright_listing(
+    url: str, *, link_selector: str, ready_selector: str,
+    load_more_selector: str | None = None, max_links: int = 40,
+    empty_selector: str | None = None, empty_text_pattern: str | None = None,
+    timeout_ms: int = 20_000,
+) -> list[str]:
+    """Görünür etkinlik listesi. Analitik isteklerinin bitmesini beklemez, site API'sini doğrudan çağırmaz.
+    En fazla 10 kez 'daha fazla' tıklanır; kart sayısı artmazsa açık hata döner.
+    """
+    from playwright.sync_api import sync_playwright
+
+    check_robots(url)
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        try:
+            page = browser.new_page(user_agent=USER_AGENT, locale="tr-TR", timezone_id="Europe/Istanbul")
+            response = page.goto(url, wait_until="domcontentloaded", timeout=45_000)
+            if response is None or not response.ok:
+                raise RuntimeError(f"Liste alınamadı: {url} (HTTP {response.status if response else '?'})")
+            page.locator(ready_selector).first.wait_for(state="attached", timeout=timeout_ms)
+
+            def links() -> list[str]:
+                return list(dict.fromkeys(page.locator(link_selector).evaluate_all("els => els.map(e => e.href)")))
+
+            result = links()
+            if not result:
+                empty = page.locator(empty_selector).first if empty_selector else None
+                message = empty.inner_text(timeout=timeout_ms) if empty is not None and empty.count() else ""
+                if not empty_text_pattern or not re.search(empty_text_pattern, message):
+                    raise RuntimeError(f"Etkinlik listesi yüklenemedi: {url} ({message[:200]})")
+            for _ in range(10):
+                if len(result) >= max_links or not load_more_selector:
+                    break
+                more = page.locator(load_more_selector).first
+                if not more.is_visible() or not more.is_enabled():
+                    break
+                before = page.locator(link_selector).count()
+                polite_sleep()
+                more.click(timeout=10_000)
+                page.wait_for_function(
+                    """({selector, before, moreSelector}) => {
+                        if (document.querySelectorAll(selector).length > before) return true;
+                        const more = document.querySelector(moreSelector);
+                        return !more || more.hidden || getComputedStyle(more).display === 'none';
+                    }""",
+                    arg={"selector": link_selector, "before": before, "moreSelector": load_more_selector},
+                    timeout=timeout_ms,
+                )
+                updated = links()
+                if updated == result:
+                    break
+                result = updated
+            return result
+        finally:
+            browser.close()
 
 
 def polite_sleep() -> None:

@@ -5,7 +5,8 @@
 
 -- Kaynaklar -------------------------------------------------------------------
 -- Crawler yalnızca enabled = true ve adapter'ı olan kaynakları çalıştırır.
--- Stage 4: tek kaynak (AASSM). Diğerleri adapter'ları yazıldıkça Stage 5'te açılır.
+-- Stage 5'te açılan kaynaklar 20261119000000_stage5_sources.sql ile eklenir.
+-- on conflict do nothing, migration'ın enabled/type değerlerini korur.
 insert into public.sources (slug, name, type, base_url, enabled, notes) values
   ('aassm',          'AASSM',                    'firecrawl',  'https://www.aassm.org.tr',         true,  'Statik HTML; detay linkleri /tr/Etkinlikler/Detay/<id>'),
   ('kultursanat',    'İzmir Kültürsanat',        'playwright', 'https://kultursanat.izmir.bel.tr', false, 'React SPA, tarayıcı gerekir'),

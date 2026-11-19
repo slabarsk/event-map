@@ -2,7 +2,7 @@
 
 İzmir'deki etkinlikleri her gün web'den toplayıp tarih, mekân, kategori ve fiyat bilgisiyle konum tabanlı bir haritada gösteren mobil uygulama. Fiyat yoksa ajan arar; bulamazsa tahmin eder ve **"Tahmini"** olarak etiketler.
 
-> Durum: **Stage 4 – First flow.** Şema, RLS ve seed hazır; tek kaynaklı (AASSM) crawler ve günlük cron kuruldu. Aşama aşama plan için [roadmap/ROADMAP.md](roadmap/ROADMAP.md), mimari için [roadmap/architecture.html](roadmap/architecture.html).
+> Durum: **Stage 5 – Core MVP.** Fiyat ajanı ve admin paneli hazır. AASSM, Biletinial, Bornova, Karşıyaka ve İzmir Kültür Sanat Fabrikası için beş kaynak adapter'ı ve Chromium CI kurulumu var; yeni kaynaklar `20261119000000_stage5_sources.sql` migration'ı uygulanınca açılır. [Kaynak kontrolü ve doğrulama](docs/sources.md), [roadmap](roadmap/ROADMAP.md), [mimari](roadmap/architecture.html).
 
 ## Demo Day hedefleri
 
@@ -102,10 +102,12 @@ supabase test db
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -r crawler/requirements.txt
-playwright install chromium               # yalnızca dinamik kaynaklar için (Stage 5)
+python -m playwright install chromium      # Biletinial ve Bornova JS listeleri için
 
+python -m crawler.run --discover --source bornova --limit 2  # anahtarsız, yalnızca detay URL'leri
 python -m crawler.run --source aassm --dry-run --limit 2   # DB'ye yazmadan, 2 sayfayla dene
 python -m crawler.run --source aassm             # Supabase'e yaz
+python -m crawler.run                           # açık olan tüm kaynaklar
 python -m pytest crawler                         # birim testleri
 ```
 
@@ -151,7 +153,7 @@ pip install -r eval/requirements.txt
 pytest eval
 ```
 
-> Fiyat ajanı, duplicate merge, diğer kaynak adapter'ları ve Edge Functions Stage 5'te eklenecek. Bkz. [roadmap/ROADMAP.md](roadmap/ROADMAP.md).
+> Stage 5'te sırada duplicate merge, harita filtreleri/kümeleme ve doğal dil araması var. Kaynakların uçtan uca canlı crawl kontrolü için [docs/sources.md](docs/sources.md).
 
 ## Güvenlik ve veri
 

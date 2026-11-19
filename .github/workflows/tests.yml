@@ -16,6 +16,7 @@ jobs:
           cache: pip
           cache-dependency-path: crawler/requirements.txt
       - run: pip install -r crawler/requirements.txt pytest
+      - run: python -m playwright install --with-deps chromium
       - run: python -m pytest crawler -q
 
   database:
