@@ -2,9 +2,7 @@
 
 fetch -> içerik hash'i değişmediyse atla (Claude çağrılmaz) -> Claude ile çıkarım
 -> doğrulama -> fiyat yoksa fiyat ajanı (price/) -> mekân eşleştirme / geocode
--> upsert (events + event_sources) -> crawl_runs kaydı.
-
-Stage 5'te eklenecek: kaynaklar arası duplicate merge (dedup/).
+-> duplicate merge (dedup/) -> upsert (events + event_sources) -> crawl_runs kaydı.
 """
 from __future__ import annotations
 
@@ -16,6 +14,7 @@ import anthropic
 
 from . import db
 from .config import PRICE_IN_PER_MTOK, PRICE_OUT_PER_MTOK
+from .dedup import DedupAgent, enrich_patch
 from .extract import extract_events, normalize
 from .geocode import resolve_venue
 from .models import NormalizedEvent, RawItem, Usage
@@ -31,6 +30,7 @@ class RunStats:
     items_skipped: int = 0
     events_found: int = 0
     events_upserted: int = 0
+    events_merged: int = 0
     errors: int = 0
     error_log: list[dict[str, str]] = field(default_factory=list)
     usage: Usage = field(default_factory=Usage)
@@ -61,9 +61,11 @@ def run_source(
     limit: int | None = None,
     refresh: bool = False,
     price_agent: PriceAgent | None = None,
+    dedup_agent: DedupAgent | None = None,
 ) -> RunStats:
     stats = RunStats()
     prices = price_agent or PriceAgent(claude)
+    dedup = dedup_agent or DedupAgent(claude)
     adapter.skipped = 0
     adapter.fetch_errors = ()
     adapter.skip_ids = frozenset()
@@ -76,7 +78,7 @@ def run_source(
         for item in adapter.fetch():
             stats.items_fetched += 1
             try:
-                _process_item(source, item, claude, stats, dry_run, prices)
+                _process_item(source, item, claude, stats, dry_run, prices, dedup)
             except Exception as exc:  # tek öğe hatası koşuyu durdurmaz
                 stats.error(item.url, exc)
     except Exception as exc:  # adapter tümden bozuldu (site değişti, engellendi...)
@@ -89,6 +91,7 @@ def run_source(
             stats.fatal = True
         stats.items_skipped += adapter.skipped
         stats.usage.add(prices.usage)
+        stats.usage.add(dedup.usage)
         if run_id:
             db.finish_run(
                 run_id,
@@ -107,7 +110,7 @@ def run_source(
 
 def _process_item(
     source: dict[str, Any], item: RawItem, claude: anthropic.Anthropic, stats: RunStats, dry_run: bool,
-    prices: PriceAgent,
+    prices: PriceAgent, dedup: DedupAgent,
 ) -> None:
     chash = db.content_hash(item.text)
     if not dry_run and db.seen_hash(source["id"], item.external_id) == chash:
@@ -130,7 +133,7 @@ def _process_item(
             print(ev.model_dump_json(indent=2))
             continue
         try:
-            _store_event(source, item, idx, ev, chash)
+            _store_event(source, item, idx, ev, chash, dedup, stats)
             stats.events_upserted += 1
         except Exception as exc:
             item_failed = True
@@ -204,7 +207,15 @@ def event_row(ev: NormalizedEvent, venue_id: str) -> dict[str, Any]:
     }
 
 
-def _store_event(source: dict[str, Any], item: RawItem, idx: int, ev: NormalizedEvent, chash: str) -> None:
+def _store_event(
+    source: dict[str, Any],
+    item: RawItem,
+    idx: int,
+    ev: NormalizedEvent,
+    chash: str,
+    dedup: DedupAgent,
+    stats: RunStats,
+) -> None:
     venue_id = resolve_venue(ev.venue_name, ev.address)
     if venue_id is None:
         raise RuntimeError(f"mekân konumu çözülemedi: {ev.venue_name}")
@@ -214,8 +225,14 @@ def _store_event(source: dict[str, Any], item: RawItem, idx: int, ev: Normalized
     if event_id:
         db.update_event(event_id, row)  # sayfa değişti: aynı kaydı güncelle
     else:
-        # Crawl edilen etkinlik doğrudan yayınlanır; organizatör gönderileri pending başlar.
-        event_id = db.insert_event({**row, "status": "published", "origin": "crawl"})
+        dup_id = _find_duplicate_safe(dedup, ev, venue_id, stats)
+        if dup_id:
+            event_id = dup_id
+            _enrich_existing(dup_id, ev)
+            stats.events_merged += 1
+        else:
+            # Crawl edilen etkinlik doğrudan yayınlanır; organizatör gönderileri pending başlar.
+            event_id = db.insert_event({**row, "status": "published", "origin": "crawl"})
 
     db.upsert_event_source(
         {
@@ -228,3 +245,81 @@ def _store_event(source: dict[str, Any], item: RawItem, idx: int, ev: Normalized
             "last_seen_at": db.now_iso(),
         }
     )
+
+
+def _find_duplicate_safe(
+    dedup: DedupAgent, ev: NormalizedEvent, venue_id: str, stats: RunStats, *, exclude_id: str | None = None
+) -> str | None:
+    """Duplicate kontrolü hatası etkinliği düşürmez: yeni etkinlik olarak yazılır."""
+    try:
+        dup_id, _ = dedup.find_duplicate(ev, venue_id, exclude_id=exclude_id)
+        return dup_id
+    except Exception as exc:
+        stats.error(f"dedup:{ev.title}", exc)
+        return None
+
+
+def _enrich_existing(event_id: str, ev: NormalizedEvent) -> None:
+    existing = db.get_event(event_id)
+    if not existing:
+        return
+    patch = enrich_patch(existing, ev)
+    if patch:
+        db.update_event(event_id, patch)
+
+
+def dedup_existing_events(
+    claude: anthropic.Anthropic | None,
+    *,
+    limit: int = 200,
+    dry_run: bool = False,
+    dedup_agent: DedupAgent | None = None,
+) -> RunStats:
+    """Veritabanındaki yaklaşan yayınlanmış etkinlikler arasında geriye dönük duplicate taraması yapar."""
+    stats = RunStats()
+    dedup = dedup_agent or DedupAgent(claude)
+    dropped: set[str] = set()
+    rows = db.upcoming_published_events(limit)
+
+    for row in rows:
+        row_id = row["id"]
+        if row_id in dropped:
+            continue
+        venue_id = row.get("venue_id")
+        if not venue_id:
+            continue
+        stats.items_fetched += 1
+        venue = row.get("venue") or {}
+        ev = NormalizedEvent(
+            title=row["title"],
+            description=row.get("description"),
+            starts_at=row["starts_at"],
+            ends_at=row.get("ends_at"),
+            venue_name=venue.get("name") or "",
+            address=venue.get("address"),
+            category=row["category"],
+            price_min=row.get("price_min"),
+            price_max=row.get("price_max"),
+            price_status=row.get("price_status") or "unknown",
+            price_source_url=row.get("price_source_url"),
+            ticket_url=row.get("ticket_url"),
+            image_url=row.get("image_url"),
+            requires_registration=bool(row.get("requires_registration")),
+        )
+        dup_id = _find_duplicate_safe(dedup, ev, venue_id, stats, exclude_id=row_id)
+        if not dup_id or dup_id in dropped:
+            continue
+        stats.events_found += 1
+        if dry_run:
+            print(f"MERGE: drop={row_id} ({ev.title}) -> keep={dup_id}")
+            dropped.add(row_id)
+            continue
+        try:
+            db.merge_events(dup_id, row_id)
+            dropped.add(row_id)
+            stats.events_merged += 1
+        except Exception as exc:
+            stats.error(f"dedup-merge:{row_id}->{dup_id}", exc)
+
+    stats.usage.add(dedup.usage)
+    return stats

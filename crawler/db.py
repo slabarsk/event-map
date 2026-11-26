@@ -140,3 +140,56 @@ def unknown_price_events(limit: int) -> list[dict[str, Any]]:
         .execute()
     )
     return res.data or []
+
+
+def get_event(event_id: str) -> dict[str, Any] | None:
+    res = (
+        client().table("events")
+        .select("id,title,description,starts_at,ends_at,venue_id,category,price_min,price_max,"
+                "price_status,price_source_url,ticket_url,image_url,requires_registration,"
+                "venue:venues(name,address)")
+        .eq("id", event_id)
+        .limit(1)
+        .execute()
+    )
+    return res.data[0] if res.data else None
+
+
+def find_event_candidates(
+    title: str, starts_at: str, venue_id: str, exclude_id: str | None = None
+) -> list[dict[str, Any]]:
+    """Duplicate merge adayları: aynı mekân ya da 200 m içinde, başlangıç ±2 saat, pg_trgm >= 0.25."""
+    res = (
+        client().rpc(
+            "find_event_candidates",
+            {
+                "p_title": title,
+                "p_starts_at": starts_at,
+                "p_venue_id": venue_id,
+                "p_exclude": exclude_id,
+            },
+        )
+        .execute()
+    )
+    return res.data or []
+
+
+def merge_events(keep_id: str, drop_id: str) -> None:
+    """p_drop kaydının kaynaklarını ve kullanıcı kayıtlarını p_keep kaydına taşır ve p_drop'u siler."""
+    client().rpc("merge_events", {"p_keep": keep_id, "p_drop": drop_id}).execute()
+
+
+def upcoming_published_events(limit: int = 200) -> list[dict[str, Any]]:
+    """Geriye dönük duplicate taraması için yaklaşan yayınlanmış etkinlikler."""
+    res = (
+        client().table("events")
+        .select("id,title,description,starts_at,ends_at,venue_id,category,price_min,price_max,"
+                "price_status,price_source_url,ticket_url,image_url,requires_registration,"
+                "venue:venues(name,address)")
+        .eq("status", "published")
+        .gte("starts_at", now_iso())
+        .order("starts_at")
+        .limit(limit)
+        .execute()
+    )
+    return res.data or []
