@@ -28,6 +28,16 @@ jobs:
       - run: supabase db start # migration'lar + seed.sql
       - run: supabase test db # supabase/tests/database/*.sql (pgTAP)
 
+  functions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - run: deno check supabase/functions/nl-search/index.ts
+      - run: deno test supabase/functions
+
   app:
     runs-on: ubuntu-latest
     defaults:
