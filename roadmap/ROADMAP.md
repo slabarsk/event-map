@@ -8,7 +8,7 @@ Plan 10 aşamadan oluşur. Her aşamada hedef, yapılacaklar ve haftalık sunumd
 
 ## Güncel durum (19 Kasım 2026)
 
-Stage 3 ve Stage 4 tamamlandı. Stage 5'te fiyat ajanı ve yönetim paneli canlıda; kaynak sayısını artırma, duplicate merge, filtreler ve "near me tonight" sırada.
+Stage 3 ve Stage 4 tamamlandı. Stage 5'te fiyat ajanı ve yönetim paneli canlıda; "near me tonight" araması, organizatör paneli ve kayıtlı etkinlikler eklendi. Kaynak sayısını artırma, duplicate merge ve harita filtreleri sırada.
 
 **Canlıda çalışanlar**
 
@@ -27,9 +27,7 @@ Stage 3 ve Stage 4 tamamlandı. Stage 5'te fiyat ajanı ve yönetim paneli canl�
 1. Kaynak sayısını 5'e çıkarmak (her kaynak için ayrı adapter).
 2. Duplicate merge.
 3. Harita filtreleri ve pin kümeleme.
-4. "Near me tonight" doğal dil araması.
-5. Organizatörün etkinlik göndermesi ve kayıtlı etkinlikler.
-6. Google girişini iOS ve Android cihazda denemek.
+4. Google girişini iOS ve Android cihazda denemek.
 
 ---
 
@@ -238,10 +236,10 @@ MAPBOX_SECRET_TOKEN=         # crawler (geocoding)
 - [x] **Fiyat ajanı:** Fiyat yoksa önce etkinliğin bilet/detay sayfasına gider, gerekirse Firecrawl search kullanır, bulursa `looked_up` ve kaynak URL'si yazar. Bulamazsa Claude aynı mekân, kategori ve benzer etkinliklerden bir aralık tahmin eder, `estimated` yazar. UI'da her zaman "Tahmini" rozeti gösterilir.
 - [ ] **Duplicate merge:** Önce aday çiftler çıkarılır: aynı mekân ya da 200 m içinde (`ST_DWithin`), başlangıç saati ±2 saat, `pg_trgm` başlık benzerliği. Kesin eşleşmeler otomatik birleşir. Belirsiz olanlara Claude evet/hayır kararı verir. Kaynaklar `event_sources` altında toplanır.
 - [ ] **Harita ve filtreler:** Tarih (bugün, bu hafta sonu), kategori, ücretsiz/fiyat, mesafe. Pin kümeleme (clustering) ve etkinlik detay kartı.
-- [ ] **"Near me tonight":** `nl-search` Edge Function'ı. Claude soruyu `{categories, max_price, time_window, near_me, radius_m}` JSON'una çevirir, bu JSON `events_near` RPC'sine gider. Saat dilimi `Europe/Istanbul`. "Tonight" tanımı Stage 2 bulgularına göre konur.
+- [x] **"Near me tonight":** `nl-search` Edge Function'ı. Claude soruyu `{categories, max_price, time_window, near_me, radius_m}` JSON'una çevirir, bu JSON `events_near` RPC'sine gider. Saat dilimi `Europe/Istanbul`. "Tonight" şimdilik 17:00–03:00 (`filter.ts` içinde sabit; Stage 2 bulgularına göre güncellenir). Claude'a ulaşılamazsa kural tabanlı ayrıştırıcı devreye girer.
 - [x] **Başvuru ile katılım:** Ön kayıt ya da başvuru formuyla katılınan etkinlikler işaretlenir (`requires_registration`), uygulamada "Başvuru ile" etiketi çıkar ve bu etkinlikler için fiyat tahmini yapılmaz.
 - [x] **Yönetim paneli (web):** Admin, organizatör başvurularını onaylar ya da reddeder. Yalnızca panel içeren ayrı bir derleme GitHub Pages'te yayında; admin olmayan oturum kapatılır.
-- [ ] **Organizatör paneli** (etkinlik gönder, yayın için admin onayı) ve **kayıtlı etkinlikler**.
+- [x] **Organizatör paneli** (etkinlik gönder, yayın için admin onayı) ve **kayıtlı etkinlikler**. Organizatör kayıtlı mekânı seçer ya da yeni mekânı haritada işaretler; admin panelde "Etkinlik onayları" ile yayınlar ya da gerekçeyle reddeder.
 
 **Göster:** Midterm demosu, Demo Day a) ve b) senaryolarının ilk hali.
 
