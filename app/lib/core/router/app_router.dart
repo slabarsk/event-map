@@ -7,6 +7,7 @@ import '../../features/admin/presentation/admin_login_screen.dart';
 import '../../features/admin/presentation/admin_shell.dart';
 import '../../features/admin/presentation/application_detail_screen.dart';
 import '../../features/admin/presentation/applications_screen.dart';
+import '../../features/admin/presentation/event_reviews_screen.dart';
 import '../../features/auth/application/auth_controller.dart';
 import '../../features/auth/domain/app_user.dart';
 import '../../features/auth/presentation/consent_screen.dart';
@@ -18,8 +19,11 @@ import '../../features/home/presentation/home_shell.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/map/presentation/map_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
+import '../../features/organizer/presentation/submit_event_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/profile/presentation/settings_screen.dart';
+import '../../features/saved/presentation/saved_screen.dart';
+import '../../features/search/presentation/search_screen.dart';
 
 abstract final class Routes {
   static const splash = '/';
@@ -32,6 +36,11 @@ abstract final class Routes {
   static const map = '/map';
   static const profile = '/profile';
   static const settings = '/profile/settings';
+  static const saved = '/saved';
+  static const submitEvent = '/organizer/new';
+  static String search([String? query]) => query == null
+      ? '/search'
+      : Uri(path: '/search', queryParameters: {'q': query}).toString();
 
   // Web yönetim paneli; yalnızca role = 'admin'.
   static const admin = '/admin';
@@ -39,6 +48,7 @@ abstract final class Routes {
   static String adminList(OrganizerStatus status) =>
       status == OrganizerStatus.pending ? admin : '$admin?durum=${status.name}';
   static String adminApplication(String id) => '$admin/applications/$id';
+  static const adminEvents = '/admin/events';
 }
 
 /// Testlerde admin-only derlemeyi taklit etmek için override edilir.
@@ -86,11 +96,30 @@ final routerProvider = Provider<GoRouter>((ref) {
             pageBuilder: (_, _) => const NoTransitionPage(child: MapScreen()),
           ),
           GoRoute(
+            path: Routes.saved,
+            pageBuilder: (_, _) => const NoTransitionPage(child: SavedScreen()),
+          ),
+          GoRoute(
             path: Routes.profile,
             pageBuilder: (_, _) =>
                 const NoTransitionPage(child: ProfileScreen()),
           ),
         ],
+      ),
+      GoRoute(
+        path: '/search',
+        builder: (_, s) =>
+            SearchScreen(initialQuery: s.uri.queryParameters['q']),
+      ),
+      GoRoute(
+        path: Routes.submitEvent,
+        redirect: (_, _) {
+          final user = ref.read(authControllerProvider).value;
+          return user?.organizerStatus == OrganizerStatus.approved
+              ? null
+              : Routes.home;
+        },
+        builder: (_, _) => const SubmitEventScreen(),
       ),
       GoRoute(
         path: Routes.settings,
@@ -103,7 +132,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, _) => const AdminLoginScreen(),
       ),
       ShellRoute(
-        builder: (_, _, child) => AdminShell(child: child),
+        builder: (_, state, child) =>
+            AdminShell(location: state.uri.path, child: child),
         routes: [
           GoRoute(
             path: Routes.admin,
@@ -114,6 +144,11 @@ final routerProvider = Provider<GoRouter>((ref) {
                     OrganizerStatus.pending,
               ),
             ),
+          ),
+          GoRoute(
+            path: Routes.adminEvents,
+            pageBuilder: (_, _) =>
+                const NoTransitionPage(child: EventReviewsScreen()),
           ),
           GoRoute(
             path: '/admin/applications/:id',

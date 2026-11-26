@@ -2,6 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../auth/domain/app_user.dart';
 import '../domain/organizer_application.dart';
+import '../domain/review_event.dart';
 
 /// Ekranda gösterilebilen, Türkçe mesajlı admin işlemi hatası.
 class AdminFailure implements Exception {
@@ -23,6 +24,14 @@ abstract class AdminRepository {
   Future<String?> organizerEmail(String id);
 
   Future<void> setStatus(String id, OrganizerStatus status);
+
+  /// Organizatörlerin gönderdiği, onay bekleyen etkinlikler (en eski önce).
+  Future<List<ReviewEvent>> pendingEvents();
+
+  Future<void> approveEvent(String id);
+
+  /// [note] organizatöre gösterilen red gerekçesi.
+  Future<void> rejectEvent(String id, {String? note});
 }
 
 /// `profiles` (admin RLS politikası) + `set_organizer_status` /
@@ -75,6 +84,32 @@ class SupabaseAdminRepository implements AdminRepository {
     ),
   );
 
+  @override
+  Future<List<ReviewEvent>> pendingEvents() async {
+    final rows = await _guard(
+      () => _client
+          .from('events')
+          .select(ReviewEvent.columns)
+          .eq('status', 'pending')
+          .eq('origin', 'organizer')
+          .order('created_at'),
+    );
+    return rows.map(ReviewEvent.fromJson).toList();
+  }
+
+  @override
+  Future<void> approveEvent(String id) => _guard(
+    () => _client.rpc<void>('approve_event', params: {'p_event_id': id}),
+  );
+
+  @override
+  Future<void> rejectEvent(String id, {String? note}) => _guard(
+    () => _client.rpc<void>(
+      'reject_event',
+      params: {'p_event_id': id, 'p_note': note},
+    ),
+  );
+
   Future<T> _guard<T>(Future<T> Function() action) async {
     try {
       return await action();
@@ -119,6 +154,42 @@ class DemoAdminRepository implements AdminRepository {
     if (item == null) throw const AdminFailure('Başvuru bulunamadı.');
     _items[id] = item.copyWith(status: status);
   }
+
+  final Map<String, ReviewEvent> _events = {
+    for (final e in _demoEvents()) e.id: e,
+  };
+
+  @override
+  Future<List<ReviewEvent>> pendingEvents() async =>
+      _events.values.toList()
+        ..sort((a, b) => a.submittedAt.compareTo(b.submittedAt));
+
+  @override
+  Future<void> approveEvent(String id) async {
+    if (_events.remove(id) == null) {
+      throw const AdminFailure('Etkinlik bulunamadı.');
+    }
+  }
+
+  @override
+  Future<void> rejectEvent(String id, {String? note}) => approveEvent(id);
+
+  static List<ReviewEvent> _demoEvents() => [
+    ReviewEvent(
+      id: 'review-1',
+      title: 'Alsancak Akustik Gece',
+      description: 'Yerel gruplardan akustik performanslar.',
+      startsAt: DateTime.utc(2026, 12, 5, 17),
+      category: 'concert',
+      priceMin: 150,
+      priceMax: 150,
+      venueName: 'Alsancak Sahne',
+      venueAddress: 'Kıbrıs Şehitleri Cad., Alsancak',
+      organizerName: 'Mert Demir',
+      organizationName: 'Kordon Festivali',
+      submittedAt: DateTime(2026, 11, 24, 10, 15),
+    ),
+  ];
 
   static List<OrganizerApplication> _demoSeed() => [
     OrganizerApplication(

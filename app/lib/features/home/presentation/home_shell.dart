@@ -22,6 +22,7 @@ class HomeShell extends ConsumerWidget {
     final role = user?.role ?? UserRole.user;
     final onProfile = location.startsWith(Routes.profile);
     final onMap = location.startsWith(Routes.map);
+    final onSaved = location.startsWith(Routes.saved);
 
     return Scaffold(
       extendBody: true,
@@ -63,7 +64,7 @@ class HomeShell extends ConsumerWidget {
                         _NavItem(
                           icon: Icons.home_rounded,
                           label: 'Ana sayfa',
-                          active: !onProfile && !onMap,
+                          active: !onProfile && !onMap && !onSaved,
                           role: role,
                           onTap: () => context.go(Routes.home),
                         ),
@@ -74,6 +75,16 @@ class HomeShell extends ConsumerWidget {
                           role: role,
                           onTap: () => context.go(Routes.map),
                         ),
+                        // Organizatörde yanında gönder butonu olduğu için dar
+                        // ekranda sığmaz; organizatör kayıtlılara profilden ulaşır.
+                        if (!(user?.isOrganizer ?? false))
+                          _NavItem(
+                            icon: Icons.bookmark_rounded,
+                            label: 'Kayıtlı',
+                            active: onSaved,
+                            role: role,
+                            onTap: () => context.go(Routes.saved),
+                          ),
                         _NavItem(
                           icon: Icons.person_rounded,
                           label: 'Profil',
@@ -174,12 +185,9 @@ class _CreateButton extends StatelessWidget {
         shadowColor: AppColors.ink.withValues(alpha: 0.4),
         child: InkWell(
           customBorder: const CircleBorder(),
-          onTap: () => showMessage(
-            context,
-            approved
-                ? 'Etkinlik gönderme yakında burada.'
-                : 'Onaydan sonra etkinlik gönderebilirsin.',
-          ),
+          onTap: () => approved
+              ? context.push(Routes.submitEvent)
+              : showMessage(context, 'Onaydan sonra etkinlik gönderebilirsin.'),
           child: const SizedBox.square(
             dimension: 66,
             child: Icon(Icons.add_rounded, color: Colors.white, size: 30),

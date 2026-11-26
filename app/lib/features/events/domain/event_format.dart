@@ -72,6 +72,13 @@ abstract final class EventFormat {
   static bool showsPrice(MapEvent e) =>
       !(e.requiresRegistration && e.priceStatus == PriceStatus.unknown);
 
+  /// "850 m" ya da "2,4 km"; konumsuz sorguda null.
+  static String? distance(double? meters) {
+    if (meters == null) return null;
+    if (meters < 1000) return '${(meters / 50).round() * 50} m';
+    return '${NumberFormat('0.#', 'tr').format(meters / 1000)} km';
+  }
+
   static String _amount(double v) =>
       NumberFormat.decimalPattern('tr').format(v.round());
 }

@@ -12,6 +12,8 @@ import '../../auth/data/auth_repository.dart';
 import '../../auth/domain/app_user.dart';
 import '../../auth/presentation/widgets/auth_widgets.dart';
 import '../../home/presentation/home_screen.dart';
+import '../../organizer/application/organizer_providers.dart';
+import '../../saved/application/saved_providers.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -23,16 +25,20 @@ class ProfileScreen extends ConsumerWidget {
     final prefs = user.preferences;
     final org = user.organization;
 
+    final savedCount = ref.watch(savedIdsProvider).value?.length ?? 0;
+    final orgStats = user.isOrganizer
+        ? ref.watch(organizerStatsProvider).value
+        : null;
     final stats = user.isOrganizer
         ? [
             ('${org?.categories.length ?? 0}', 'Kategori'),
-            ('0', 'Yayında'),
-            ('0', 'Kaydeden'),
+            ('${orgStats?.published ?? 0}', 'Yayında'),
+            ('${orgStats?.saves ?? 0}', 'Kaydeden'),
           ]
         : [
             ('${prefs.categories.length}', 'İlgi alanı'),
             ('${prefs.radiusKm} km', 'Mesafe'),
-            ('0', 'Kayıtlı'),
+            ('$savedCount', 'Kayıtlı'),
           ];
 
     return SingleChildScrollView(
@@ -115,6 +121,13 @@ class ProfileScreen extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(vertical: 6),
                       child: Column(
                         children: [
+                          _Tile(
+                            icon: Icons.bookmark_border_rounded,
+                            title: 'Kayıtlı etkinlikler',
+                            value: '$savedCount',
+                            onTap: () => context.go(Routes.saved),
+                          ),
+                          const Divider(indent: 64),
                           _Tile(
                             icon: Icons.privacy_tip_outlined,
                             title: 'KVKK aydınlatma metni',

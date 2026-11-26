@@ -16,6 +16,12 @@ import 'features/events/application/events_providers.dart';
 import 'features/events/data/demo_events_repository.dart';
 import 'features/events/data/events_repository.dart';
 import 'features/events/data/supabase_events_repository.dart';
+import 'features/organizer/application/organizer_providers.dart';
+import 'features/organizer/data/organizer_repository.dart';
+import 'features/saved/application/saved_providers.dart';
+import 'features/saved/data/saved_events_repository.dart';
+import 'features/search/application/search_providers.dart';
+import 'features/search/data/search_repository.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,12 +45,27 @@ Future<void> main() async {
     admin = DemoAdminRepository();
   }
 
+  // Supabase yoksa arama, kayıtlılar ve organizatör paneli varsayılan bellek
+  // içi demo repository'leriyle çalışır (bkz. ilgili provider'lar).
+  final client = Env.hasSupabase ? Supabase.instance.client : null;
+
   runApp(
     ProviderScope(
       overrides: [
         authRepositoryProvider.overrideWithValue(repository),
         eventsRepositoryProvider.overrideWithValue(events),
         adminRepositoryProvider.overrideWithValue(admin),
+        if (client != null) ...[
+          searchRepositoryProvider.overrideWithValue(
+            SupabaseSearchRepository(client),
+          ),
+          savedEventsRepositoryProvider.overrideWithValue(
+            SupabaseSavedEventsRepository(client),
+          ),
+          organizerRepositoryProvider.overrideWithValue(
+            SupabaseOrganizerRepository(client),
+          ),
+        ],
       ],
       child: const EventMapApp(),
     ),
