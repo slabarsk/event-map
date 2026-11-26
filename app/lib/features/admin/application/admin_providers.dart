@@ -37,8 +37,14 @@ Future<void> decideApplication(
   ref.invalidate(organizerApplicationProvider(id));
 }
 
+/// Riverpod 3 hataları varsayılan olarak sessizce yeniden dener ve bu sürede
+/// ekran yükleniyor görünür. Sunucu hataları kalıcı olduğundan hemen
+/// gösterilir; kullanıcı "Tekrar dene" ile yeniler.
+Duration? _noRetry(int _, Object _) => null;
+
 final pendingEventsProvider = FutureProvider.autoDispose<List<ReviewEvent>>(
   (ref) => ref.read(adminRepositoryProvider).pendingEvents(),
+  retry: _noRetry,
 );
 
 /// Etkinliği yayınlar ya da reddeder, sonra listeyi tazeler.
