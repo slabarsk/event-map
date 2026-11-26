@@ -5,8 +5,48 @@ on:
   push:
     branches: [main]
 
+# Her job yalnızca ilgili klasör değiştiğinde çalışır; workflow dosyası değişirse
+# hepsi çalışır. Atlanan job GitHub'da "skipped" görünür ve başarılı sayılır, bu
+# yüzden workflow seviyesinde `paths:` yerine job seviyesinde `if:` kullanılıyor
+# (aksi halde required check'ler "pending"de takılı kalır).
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      crawler: ${{ steps.filter.outputs.crawler }}
+      database: ${{ steps.filter.outputs.database }}
+      functions: ${{ steps.filter.outputs.functions }}
+      app: ${{ steps.filter.outputs.app }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            workflow: &workflow
+              - .github/workflows/tests.yml
+            crawler:
+              - *workflow
+              - crawler/**
+            database:
+              - *workflow
+              - supabase/migrations/**
+              - supabase/tests/**
+              - supabase/seed.sql
+              - supabase/config.toml
+            functions:
+              - *workflow
+              - supabase/functions/**
+            app:
+              - *workflow
+              - app/**
+
   crawler:
+    needs: changes
+    if: needs.changes.outputs.crawler == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,6 +59,8 @@ jobs:
       - run: python -m pytest crawler -q
 
   database:
+    needs: changes
+    if: needs.changes.outputs.database == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,6 +71,8 @@ jobs:
       - run: supabase test db # supabase/tests/database/*.sql (pgTAP)
 
   functions:
+    needs: changes
+    if: needs.changes.outputs.functions == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -39,6 +83,8 @@ jobs:
       - run: deno test supabase/functions
 
   app:
+    needs: changes
+    if: needs.changes.outputs.app == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
