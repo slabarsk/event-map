@@ -9,6 +9,8 @@ import '../../../core/widgets/common.dart';
 import '../../events/application/events_providers.dart';
 import '../../events/domain/event.dart';
 import '../../events/presentation/venue_events_sheet.dart';
+import '../../search/application/search_providers.dart';
+import '../../search/domain/search_result.dart';
 import 'widgets/venue_pin.dart';
 
 /// Konak / Alsancak civarı; ilk açılışta şehir merkezini gösterir.
@@ -16,7 +18,8 @@ const izmirCenter = LatLng(38.4300, 27.1400);
 const _initialZoom = 12.0;
 
 /// Tam ekran etkinlik haritası: mekân başına bir pin, dokununca o mekândaki
-/// etkinlikler. Filtreler ve "near me" Stage 5'te üst karta eklenecek.
+/// etkinlikler. Bir arama sonucu gönderildiyse yalnızca onun etkinlikleri ve
+/// (konumla arandıysa) kullanıcının konumu gösterilir.
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key, this.showTiles = true});
 
@@ -39,25 +42,40 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   @override
   Widget build(BuildContext context) {
     final groups = ref.watch(venueGroupsProvider);
+    final search = ref.watch(mapSearchProvider);
     final bottomInset = MediaQuery.paddingOf(context).bottom;
+    final here = search?.location;
 
     return Stack(
       children: [
         FlutterMap(
           mapController: _map,
-          options: const MapOptions(
+          options: MapOptions(
             initialCenter: izmirCenter,
             initialZoom: _initialZoom,
+            initialCameraFit: _fit(search),
             minZoom: 8,
             maxZoom: 18,
             backgroundColor: Color(0xFFF4EEEA),
-            interactionOptions: InteractionOptions(
+            interactionOptions: const InteractionOptions(
               flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
             ),
           ),
           children: [
             if (widget.showTiles)
               ColorFiltered(colorFilter: _softTiles, child: _tiles()),
+            if (here != null)
+              MarkerLayer(
+                markers: [
+                  Marker(
+                    key: const ValueKey('my-location'),
+                    point: here,
+                    width: 22,
+                    height: 22,
+                    child: const _MyLocationDot(),
+                  ),
+                ],
+              ),
             MarkerLayer(
               markers: [
                 for (final g in groups.value ?? const <VenueGroup>[])
@@ -89,7 +107,11 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 width: 560,
                 child: Row(
                   children: [
-                    Expanded(child: _HeaderCard(groups: groups)),
+                    Expanded(
+                      child: search == null
+                          ? _HeaderCard(groups: groups)
+                          : _SearchHeader(result: search),
+                    ),
                     const SizedBox(width: 10),
                     GlassIconButton(
                       icon: Icons.center_focus_strong_rounded,
@@ -130,6 +152,21 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             child: const _Attribution(),
           ),
       ],
+    );
+  }
+
+  /// Arama sonucunun tüm pinlerini (ve kullanıcının konumunu) kadraja alır.
+  static CameraFit? _fit(SearchResult? search) {
+    if (search == null) return null;
+    final points = [
+      for (final e in search.events) LatLng(e.lat, e.lng),
+      ?search.location,
+    ];
+    if (points.length < 2) return null;
+    return CameraFit.coordinates(
+      coordinates: points,
+      padding: const EdgeInsets.fromLTRB(48, 140, 48, 180),
+      maxZoom: 15,
     );
   }
 
@@ -238,6 +275,77 @@ class _HeaderCard extends ConsumerWidget {
               onPressed: () => ref.invalidate(upcomingEventsProvider),
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// Haritada aktif arama: anlaşılan filtre ve temizleme butonu.
+class _SearchHeader extends ConsumerWidget {
+  const _SearchHeader({required this.result});
+  final SearchResult result;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final text = Theme.of(context).textTheme;
+    return GlassCard(
+      radius: 999,
+      opacity: 0.85,
+      padding: const EdgeInsets.fromLTRB(18, 10, 6, 10),
+      child: Row(
+        children: [
+          const Icon(Icons.auto_awesome_rounded, color: AppColors.coral),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  result.query,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: text.titleSmall,
+                ),
+                Text(
+                  '${result.events.length} etkinlik · ${result.labels.join(' · ')}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: text.bodySmall?.copyWith(color: AppColors.inkSoft),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            tooltip: 'Aramayı temizle',
+            icon: const Icon(Icons.close_rounded),
+            onPressed: () => ref.read(mapSearchProvider.notifier).clear(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MyLocationDot extends StatelessWidget {
+  const _MyLocationDot();
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: 'Konumun',
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.sky,
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white, width: 3),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.sky.withValues(alpha: 0.5),
+              blurRadius: 10,
+            ),
+          ],
+        ),
       ),
     );
   }

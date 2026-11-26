@@ -11,6 +11,14 @@ import '../../auth/application/auth_controller.dart';
 import '../../auth/domain/app_user.dart';
 import '../../auth/presentation/widgets/auth_widgets.dart';
 import '../../auth/presentation/widgets/map_preview.dart';
+import '../../events/application/events_providers.dart';
+import '../../events/domain/event.dart';
+import '../../events/domain/event_format.dart';
+import '../../events/presentation/event_visuals.dart';
+import '../../events/presentation/venue_events_sheet.dart';
+import '../../organizer/application/organizer_providers.dart';
+import '../../organizer/data/organizer_repository.dart';
+import '../../organizer/domain/organizer_event.dart';
 import '../../profile/presentation/profile_screen.dart';
 
 /// Role göre kullanıcı ana sayfası ya da organizatör paneli.
@@ -103,8 +111,8 @@ class _UserHome extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         GestureDetector(
-          onTap: () =>
-              showMessage(context, 'Doğal dil araması yakında burada.'),
+          key: const ValueKey('home-search'),
+          onTap: () => context.push(Routes.search()),
           child: GlassCard(
             radius: 999,
             padding: const EdgeInsets.fromLTRB(18, 8, 8, 8),
@@ -171,48 +179,90 @@ class _UserHome extends StatelessWidget {
           'Bu akşam',
           accent: 'sana özel',
           action: 'Tümü',
-          onAction: () {},
+          onAction: () => context.push(Routes.search('Bu akşam')),
         ),
         const SizedBox(height: 14),
-        GlassCard(
-          child: Row(
-            children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: AppColors.coralSoft,
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: const Icon(
-                  Icons.event_available_rounded,
-                  color: AppColors.coral,
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Text(
-                  'Etkinlikler toplanmaya başladığında ilgi alanlarına göre burada listelenecek.',
-                  style: text.bodyMedium,
-                ),
-              ),
-            ],
-          ),
-        ),
+        _TonightList(interests: prefs.categories),
       ],
     );
   }
 }
 
-class _OrganizerHome extends StatelessWidget {
+/// Bu akşamki (17:00–03:00) etkinlikler; önce ilgi alanlarına uyanlar.
+class _TonightList extends ConsumerWidget {
+  const _TonightList({required this.interests});
+  final Set<String> interests;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final now = ref.read(clockProvider)();
+    final async = ref.watch(upcomingEventsProvider);
+    if (async.isLoading && !async.hasValue) {
+      return const Padding(
+        padding: EdgeInsets.all(24),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+    // Veri yüklenemediyse boş durum gösterilir; harita sekmesi hatayı ayrıca
+    // ve "Tekrar dene" ile gösterir.
+    final events = async.value ?? const <MapEvent>[];
+    final dayStart = EventFormat.istanbulDayStart(now);
+    final eveningEnd = dayStart.add(const Duration(hours: 27));
+    final tonight =
+        events.where((e) => e.startsAt.isBefore(eveningEnd)).toList()
+          ..sort((a, b) {
+            final ai = interests.contains(a.category) ? 0 : 1;
+            final bi = interests.contains(b.category) ? 0 : 1;
+            return ai != bi ? ai - bi : a.startsAt.compareTo(b.startsAt);
+          });
+    if (tonight.isEmpty) {
+      return GlassCard(
+        child: Row(
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: AppColors.coralSoft,
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: const Icon(
+                Icons.event_available_rounded,
+                color: AppColors.coral,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                'Bu akşam için etkinlik görünmüyor. Hafta sonuna göz atmak ister misin?',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    return Column(
+      children: [
+        for (final MapEvent e in tonight.take(3)) ...[
+          EventCard(event: e, now: now, showVenue: true),
+          const SizedBox(height: 12),
+        ],
+      ],
+    );
+  }
+}
+
+class _OrganizerHome extends ConsumerWidget {
   const _OrganizerHome({required this.user});
   final AppUser user;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final text = Theme.of(context).textTheme;
     final org = user.organization ?? const Organization();
     final approved = user.organizerStatus == OrganizerStatus.approved;
+    final stats = ref.watch(organizerStatsProvider).value;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -229,42 +279,48 @@ class _OrganizerHome extends StatelessWidget {
           child: PrimaryButton(
             label: 'Etkinlik gönder',
             icon: Icons.add_rounded,
-            onPressed: () => showMessage(
-              context,
-              approved
-                  ? 'Etkinlik gönderme yakında burada.'
-                  : 'Onaydan sonra etkinlik gönderebilirsin.',
-            ),
+            onPressed: () => approved
+                ? context.push(Routes.submitEvent)
+                : showMessage(
+                    context,
+                    'Onaydan sonra etkinlik gönderebilirsin.',
+                  ),
           ),
         ),
         const SizedBox(height: 24),
-        const Row(
+        Row(
           children: [
             Expanded(
               child: _StatTile(
                 label: 'Yayında',
-                value: '0',
+                value: '${stats?.published ?? 0}',
                 color: AppColors.plum,
               ),
             ),
-            SizedBox(width: 12),
+            const SizedBox(width: 12),
             Expanded(
               child: _StatTile(
                 label: 'Bekleyen',
-                value: '0',
+                value: '${stats?.pending ?? 0}',
                 color: AppColors.amber,
               ),
             ),
-            SizedBox(width: 12),
+            const SizedBox(width: 12),
             Expanded(
               child: _StatTile(
                 label: 'Kaydeden',
-                value: '0',
+                value: '${stats?.saves ?? 0}',
                 color: AppColors.coral,
               ),
             ),
           ],
         ),
+        if (approved) ...[
+          const SizedBox(height: 28),
+          const SectionHeader('Etkinliklerin'),
+          const SizedBox(height: 14),
+          const _MyEvents(),
+        ],
         const SizedBox(height: 28),
         SectionHeader(
           'Organizasyonun',
@@ -302,6 +358,142 @@ class _OrganizerHome extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+/// Organizatörün gönderdiği etkinlikler ve durumları.
+class _MyEvents extends ConsumerWidget {
+  const _MyEvents();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final text = Theme.of(context).textTheme;
+    final now = ref.read(clockProvider)();
+    return switch (ref.watch(myEventsProvider)) {
+      AsyncData(:final value) when value.isEmpty => GlassCard(
+        child: Text(
+          'Henüz etkinlik göndermedin. Gönderdiğin etkinlikler onay durumuyla burada görünür.',
+          style: text.bodyMedium,
+        ),
+      ),
+      AsyncData(:final value) => Column(
+        children: [
+          for (final e in value) ...[
+            _MyEventTile(event: e, now: now),
+            const SizedBox(height: 10),
+          ],
+        ],
+      ),
+      AsyncError(:final error) => GlassCard(
+        child: Text('$error', style: text.bodyMedium),
+      ),
+      _ => const Center(child: CircularProgressIndicator()),
+    };
+  }
+}
+
+class _MyEventTile extends ConsumerWidget {
+  const _MyEventTile({required this.event, required this.now});
+  final OrganizerEvent event;
+  final DateTime now;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final text = Theme.of(context).textTheme;
+    final cat = eventCategoryOf(event.category);
+    final color = switch (event.status) {
+      EventStatus.published => AppColors.success,
+      EventStatus.pending => AppColors.amber,
+      EventStatus.rejected => AppColors.error,
+    };
+    return GlassCard(
+      radius: 22,
+      padding: const EdgeInsets.fromLTRB(14, 12, 6, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(cat.icon, color: cat.color),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(event.title, style: text.titleSmall),
+                    Text(
+                      [
+                        EventFormat.when(event.startsAt, now: now),
+                        ?event.venueName,
+                      ].join(' · '),
+                      style: text.bodySmall?.copyWith(color: AppColors.inkSoft),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  event.status.label,
+                  style: text.labelSmall?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              if (event.status == EventStatus.pending)
+                IconButton(
+                  tooltip: 'Geri çek',
+                  icon: const Icon(Icons.undo_rounded, size: 20),
+                  onPressed: () => _withdraw(context, ref),
+                ),
+            ],
+          ),
+          if (event.status == EventStatus.rejected &&
+              (event.reviewNote?.isNotEmpty ?? false)) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Gerekçe: ${event.reviewNote}',
+              style: text.bodySmall?.copyWith(color: AppColors.error),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _withdraw(BuildContext context, WidgetRef ref) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Etkinliği geri çek?'),
+        content: Text('"${event.title}" onay listesinden kaldırılır.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Vazgeç'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Geri çek'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await ref.read(organizerRepositoryProvider).withdraw(event.id);
+      refreshOrganizer(ref);
+    } on OrganizerFailure catch (e) {
+      if (context.mounted) showMessage(context, e.message, error: true);
+    }
   }
 }
 

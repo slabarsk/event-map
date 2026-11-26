@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../search/application/search_providers.dart';
 import '../data/events_repository.dart';
 import '../domain/event.dart';
 
@@ -19,7 +20,10 @@ final upcomingEventsProvider = FutureProvider<List<MapEvent>>((ref) {
   return ref.read(eventsRepositoryProvider).upcoming(from: now);
 });
 
-/// Haritada pin olarak gösterilen mekân grupları.
+/// Haritada pin olarak gösterilen mekân grupları. Bir arama sonucu haritaya
+/// gönderildiyse yalnızca onun etkinlikleri gösterilir.
 final venueGroupsProvider = Provider<AsyncValue<List<VenueGroup>>>((ref) {
+  final search = ref.watch(mapSearchProvider);
+  if (search != null) return AsyncData(VenueGroup.fromEvents(search.events));
   return ref.watch(upcomingEventsProvider).whenData(VenueGroup.fromEvents);
 });

@@ -11,8 +11,11 @@ import 'widgets/admin_widgets.dart';
 
 /// Admin panelinin iskeleti: geniş ekranda solda menü, dar ekranda üst çubuk.
 class AdminShell extends ConsumerWidget {
-  const AdminShell({super.key, required this.child});
+  const AdminShell({super.key, required this.child, this.location = '/admin'});
   final Widget child;
+  final String location;
+
+  bool get _onEvents => location.startsWith(Routes.adminEvents);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -48,6 +51,30 @@ class AdminShell extends ConsumerWidget {
                         ],
                       ),
                     ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: _NavPill(
+                              icon: Icons.how_to_reg_rounded,
+                              label: 'Başvurular',
+                              active: !_onEvents,
+                              onTap: () => context.go(Routes.admin),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _NavPill(
+                              icon: Icons.event_available_rounded,
+                              label: 'Etkinlikler',
+                              active: _onEvents,
+                              onTap: () => context.go(Routes.adminEvents),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                     Expanded(child: child),
                   ],
                 );
@@ -59,7 +86,11 @@ class AdminShell extends ConsumerWidget {
                     padding: const EdgeInsets.fromLTRB(20, 20, 0, 20),
                     child: SizedBox(
                       width: 260,
-                      child: _Sidebar(name: name, onSignOut: signOut),
+                      child: _Sidebar(
+                        name: name,
+                        onEvents: _onEvents,
+                        onSignOut: signOut,
+                      ),
                     ),
                   ),
                   Expanded(child: child),
@@ -74,14 +105,18 @@ class AdminShell extends ConsumerWidget {
 }
 
 class _Sidebar extends StatelessWidget {
-  const _Sidebar({required this.name, required this.onSignOut});
+  const _Sidebar({
+    required this.name,
+    required this.onEvents,
+    required this.onSignOut,
+  });
   final String name;
+  final bool onEvents;
   final VoidCallback onSignOut;
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final accent = Theme.of(context).colorScheme.primary;
     return GlassCard(
       padding: const EdgeInsets.all(18),
       child: Column(
@@ -93,31 +128,18 @@ class _Sidebar extends StatelessWidget {
           ),
           const SizedBox(height: 28),
           const SectionLabel('Yönetim'),
-          Material(
-            color: accent.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(16),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(16),
-              onTap: () => context.go(Routes.admin),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 12,
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.how_to_reg_rounded, color: accent, size: 20),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Organizatör başvuruları',
-                        style: text.labelLarge?.copyWith(color: accent),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          _NavPill(
+            icon: Icons.how_to_reg_rounded,
+            label: 'Organizatör başvuruları',
+            active: !onEvents,
+            onTap: () => context.go(Routes.admin),
+          ),
+          const SizedBox(height: 6),
+          _NavPill(
+            icon: Icons.event_available_rounded,
+            label: 'Etkinlik onayları',
+            active: onEvents,
+            onTap: () => context.go(Routes.adminEvents),
           ),
           const Spacer(),
           const Divider(),
@@ -151,6 +173,51 @@ class _Sidebar extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _NavPill extends StatelessWidget {
+  const _NavPill({
+    required this.icon,
+    required this.label,
+    required this.active,
+    required this.onTap,
+  });
+  final IconData icon;
+  final String label;
+  final bool active;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = Theme.of(context).colorScheme.primary;
+    final color = active ? accent : AppColors.inkSoft;
+    return Material(
+      color: active ? accent.withValues(alpha: 0.12) : Colors.transparent,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              Icon(icon, color: color, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelLarge
+                      ?.copyWith(color: color),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

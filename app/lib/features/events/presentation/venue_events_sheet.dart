@@ -1,8 +1,10 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/common.dart';
+import '../../saved/application/saved_providers.dart';
 import '../domain/event.dart';
 import '../domain/event_format.dart';
 import 'event_visuals.dart';
@@ -97,9 +99,17 @@ class VenueEventsSheet extends StatelessWidget {
 }
 
 class EventCard extends StatelessWidget {
-  const EventCard({super.key, required this.event, required this.now});
+  const EventCard({
+    super.key,
+    required this.event,
+    required this.now,
+    this.showVenue = false,
+  });
   final MapEvent event;
   final DateTime now;
+
+  /// Mekân sayfası dışındaki listelerde (arama, kayıtlı) mekân adı da yazılır.
+  final bool showVenue;
 
   @override
   Widget build(BuildContext context) {
@@ -135,9 +145,22 @@ class EventCard extends StatelessWidget {
                       '${cat.label} · ${EventFormat.when(event.startsAt, now: now)}',
                       style: text.bodySmall?.copyWith(color: AppColors.inkSoft),
                     ),
+                    if (showVenue)
+                      Text(
+                        [
+                          event.venueName,
+                          ?EventFormat.distance(event.distanceM),
+                        ].join(' · '),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: text.bodySmall?.copyWith(
+                          color: AppColors.inkSoft,
+                        ),
+                      ),
                   ],
                 ),
               ),
+              SaveEventButton(event: event),
             ],
           ),
           if (event.description case final d? when d.isNotEmpty) ...[
@@ -170,6 +193,39 @@ class EventCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Etkinliği kaydet / kayıttan çıkar.
+class SaveEventButton extends ConsumerWidget {
+  const SaveEventButton({super.key, required this.event});
+  final MapEvent event;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final saved =
+        ref.watch(savedIdsProvider).value?.contains(event.id) ?? false;
+    return IconButton(
+      tooltip: saved ? 'Kayıttan çıkar' : 'Kaydet',
+      isSelected: saved,
+      icon: const Icon(Icons.bookmark_border_rounded),
+      selectedIcon: const Icon(Icons.bookmark_rounded, color: AppColors.coral),
+      onPressed: () async {
+        try {
+          final nowSaved = await ref
+              .read(savedIdsProvider.notifier)
+              .toggle(event);
+          if (context.mounted) {
+            showMessage(
+              context,
+              nowSaved ? 'Kaydedildi' : 'Kayıttan çıkarıldı',
+            );
+          }
+        } catch (e) {
+          if (context.mounted) showMessage(context, '$e', error: true);
+        }
+      },
     );
   }
 }
