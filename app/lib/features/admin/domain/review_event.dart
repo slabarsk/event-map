@@ -37,7 +37,10 @@ class ReviewEvent {
   static const columns =
       'id, title, description, starts_at, ends_at, category, price_min, '
       'price_max, ticket_url, requires_registration, created_at, '
-      'venues(name, address), profiles(full_name, organization)';
+      'venues(name, address), '
+      // events→profiles arasında created_by ve saved_events üzerinden iki
+      // ilişki var; FK adı verilmezse PostgREST PGRST201 döner.
+      'profiles!events_created_by_fkey(full_name, organization)';
 
   factory ReviewEvent.fromJson(Map<String, dynamic> j) {
     final venue = j['venues'] as Map<String, dynamic>?;
