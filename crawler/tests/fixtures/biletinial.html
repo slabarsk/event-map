@@ -1,0 +1,24 @@
+<!doctype html><html lang="tr"><body>
+<a href="https://biletinial.com/tr-tr/muzik/menu-reklami">Menü önerisi</a>
+<ul id="homeCityEventsList" aria-busy="false"></ul>
+<button id="homeCityEventsLoadMore" hidden>Daha fazla</button>
+<script>
+// Gerçek sitedeki ilk boş aria-busy=false durumu henüz tamamlanmış yanıt değildir.
+setTimeout(() => {
+  const list = document.querySelector('#homeCityEventsList');
+  const more = document.querySelector('#homeCityEventsLoadMore');
+  list.setAttribute('aria-busy', 'true');
+  setTimeout(() => {
+    list.innerHTML = '<li class="hpv2-event-card"><a href="https://biletinial.com/tr-tr/tiyatro/yeni-oyun">Oyun</a></li>' +
+      '<li class="hpv2-event-card"><a href="https://biletinial.com/tr-tr/sinema/film">Film</a></li>';
+    list.setAttribute('aria-busy', 'false');
+    more.hidden = false;
+  }, 150);
+  let clicked = false;
+  more.onclick = () => setTimeout(() => {
+    if (clicked) { more.hidden = true; return; }
+    list.insertAdjacentHTML('beforeend', '<li class="hpv2-event-card"><a href="https://biletinial.com/tr-tr/muzik/yeni-konser">Konser</a></li>');
+    clicked = true;
+  }, 100);
+}, 100);
+</script></body></html>

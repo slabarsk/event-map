@@ -8,7 +8,7 @@ Plan 10 aşamadan oluşur. Her aşamada hedef, yapılacaklar ve haftalık sunumd
 
 ## Güncel durum (19 Kasım 2026)
 
-Stage 3 ve Stage 4 tamamlandı. Stage 5'te fiyat ajanı ve yönetim paneli canlıda; "near me tonight" araması, organizatör paneli ve kayıtlı etkinlikler eklendi. Kaynak sayısını artırma, duplicate merge ve harita filtreleri sırada.
+Stage 3 ve Stage 4 tamamlandı. Stage 5'te fiyat ajanı ve yönetim paneli canlıda; "near me tonight" araması, organizatör paneli ve kayıtlı etkinlikler eklendi. Beş kaynak adapter'ı implement edildi ve anahtarsız canlı liste keşfi doğrulandı; yeni kaynakların DB'ye açılması ve uçtan uca canlı crawl kontrolü bekliyor. Duplicate merge ve harita filtreleri sırada.
 
 **Canlıda çalışanlar**
 
@@ -24,7 +24,7 @@ Stage 3 ve Stage 4 tamamlandı. Stage 5'te fiyat ajanı ve yönetim paneli canl�
 
 **Sıradaki işler**
 
-1. Kaynak sayısını 5'e çıkarmak (her kaynak için ayrı adapter).
+1. Beş kaynak kodu hazır: yeni kaynak migration'ını uygula ve küçük limitli canlı crawl ile çıkarım/geocode/yazımı doğrula (bkz. [kaynak denetimi](../docs/sources.md)).
 2. Duplicate merge.
 3. Harita filtreleri ve pin kümeleme.
 4. Google girişini iOS ve Android cihazda denemek.
@@ -232,7 +232,8 @@ MAPBOX_SECRET_TOKEN=         # crawler (geocoding)
 
 **Hedef:** Tüm must-have'ler çalışıyor. Midterm demo.
 
-- [ ] **5+ kaynak:** Dinamik siteler için Playwright. Her kaynağın ayrı bir adapter dosyası olsun.
+- [x] **5 kaynak adapter'ı:** AASSM, Biletinial, Bornova Belediyesi, Karşıyaka Belediyesi, İzmir Kültür Sanat Fabrikası. JS listelerde Playwright, statik listelerde HTTP; detaylar Firecrawl. Migration, Chromium CI kurulumu, yerel HTML/Chromium testleri ve [kaynak denetimi](../docs/sources.md) hazır.
+- [ ] **5 kaynağın canlı doğrulaması:** Migration'ı uygula; küçük limitli crawl ile çıkarım, fiyat, geocoding ve DB yazımını doğrula. Anahtarsız `--discover --limit 3` kontrolü tamamlandı; Karşıyaka'nın güncel takvimi kontrolde boştu.
 - [x] **Fiyat ajanı:** Fiyat yoksa önce etkinliğin bilet/detay sayfasına gider, gerekirse Firecrawl search kullanır, bulursa `looked_up` ve kaynak URL'si yazar. Bulamazsa Claude aynı mekân, kategori ve benzer etkinliklerden bir aralık tahmin eder, `estimated` yazar. UI'da her zaman "Tahmini" rozeti gösterilir.
 - [ ] **Duplicate merge:** Önce aday çiftler çıkarılır: aynı mekân ya da 200 m içinde (`ST_DWithin`), başlangıç saati ±2 saat, `pg_trgm` başlık benzerliği. Kesin eşleşmeler otomatik birleşir. Belirsiz olanlara Claude evet/hayır kararı verir. Kaynaklar `event_sources` altında toplanır.
 - [ ] **Harita ve filtreler:** Tarih (bugün, bu hafta sonu), kategori, ücretsiz/fiyat, mesafe. Pin kümeleme (clustering) ve etkinlik detay kartı.

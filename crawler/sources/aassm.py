@@ -8,6 +8,7 @@ from .base import ListingAdapter
 
 class AassmAdapter(ListingAdapter):
     slug = "aassm"
+    allowed_hosts = frozenset({"www.aassm.org.tr"})
     listing_urls = [
         "https://www.aassm.org.tr/",
         "https://www.aassm.org.tr/tr/EtkinlikTakvimi/Index",

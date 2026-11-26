@@ -1,4 +1,4 @@
-"""Bir kaynağın uçtan uca işlenmesi (Stage 4: first flow).
+"""Bir kaynağın uçtan uca işlenmesi.
 
 fetch -> içerik hash'i değişmediyse atla (Claude çağrılmaz) -> Claude ile çıkarım
 -> doğrulama -> fiyat yoksa fiyat ajanı (price/) -> mekân eşleştirme / geocode
@@ -64,6 +64,9 @@ def run_source(
 ) -> RunStats:
     stats = RunStats()
     prices = price_agent or PriceAgent(claude)
+    adapter.skipped = 0
+    adapter.fetch_errors = ()
+    adapter.skip_ids = frozenset()
     run_id = None if dry_run else db.start_run(source["id"])
     if limit is not None:
         adapter.max_items = limit
@@ -80,6 +83,10 @@ def run_source(
         stats.fatal = True
         stats.error(f"adapter:{source['slug']}", exc)
     finally:
+        for url, exc in adapter.fetch_errors:
+            stats.error(url, exc)
+        if adapter.fetch_errors and stats.items_fetched == 0:
+            stats.fatal = True
         stats.items_skipped += adapter.skipped
         stats.usage.add(prices.usage)
         if run_id:
