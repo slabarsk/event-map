@@ -10,7 +10,6 @@ import '../../../core/widgets/common.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../auth/domain/app_user.dart';
 import '../../auth/presentation/widgets/auth_widgets.dart';
-import '../../auth/presentation/widgets/map_preview.dart';
 import '../../events/application/events_providers.dart';
 import '../../events/domain/event.dart';
 import '../../events/domain/event_format.dart';
@@ -20,10 +19,14 @@ import '../../organizer/application/organizer_providers.dart';
 import '../../organizer/data/organizer_repository.dart';
 import '../../organizer/domain/organizer_event.dart';
 import '../../profile/presentation/profile_screen.dart';
+import '../../map/application/map_filter_provider.dart';
+import '../../search/application/search_providers.dart';
+import 'event_map_preview.dart';
 
 /// Role göre kullanıcı ana sayfası ya da organizatör paneli.
 class HomeScreen extends ConsumerWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, this.showMapTiles = true});
+  final bool showMapTiles;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -37,7 +40,7 @@ class HomeScreen extends ConsumerWidget {
           width: 560,
           child: user.isOrganizer
               ? _OrganizerHome(user: user)
-              : _UserHome(user: user),
+              : _UserHome(user: user, showMapTiles: showMapTiles),
         ),
       ),
     );
@@ -84,12 +87,13 @@ class _Header extends StatelessWidget {
   }
 }
 
-class _UserHome extends StatelessWidget {
-  const _UserHome({required this.user});
+class _UserHome extends ConsumerWidget {
+  const _UserHome({required this.user, required this.showMapTiles});
   final AppUser user;
+  final bool showMapTiles;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final text = Theme.of(context).textTheme;
     final prefs = user.preferences;
     final mine = prefs.categories.map(Catalog.category).nonNulls.toList();
@@ -151,28 +155,31 @@ class _UserHome extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             children: [
               for (final c in mine)
-                StoryCircle(icon: c.icon, label: c.label, color: c.color),
+                StoryCircle(
+                  icon: c.icon,
+                  label: c.label,
+                  color: c.color,
+                  onTap: () => _openCategory(context, ref, c.id),
+                ),
               for (final c in others)
                 StoryCircle(
                   icon: c.icon,
                   label: c.label,
                   color: c.color,
                   active: false,
+                  onTap: () => _openCategory(context, ref, c.id),
                 ),
             ],
           ),
         ),
         const SizedBox(height: 16),
-        Semantics(
-          button: true,
-          label: 'Haritayı aç',
-          child: GestureDetector(
-            onTap: () => context.go(Routes.map),
-            child: MapPreview(
-              height: 300,
-              stats: [('${prefs.radiusKm}', 'km'), ('${mine.length}', 'İlgi')],
-            ),
-          ),
+        EventMapPreview(
+          showTiles: showMapTiles,
+          onOpen: () {
+            ref.read(mapSearchProvider.notifier).clear();
+            ref.read(mapFiltersProvider.notifier).clear();
+            context.go(Routes.map);
+          },
         ),
         const SizedBox(height: 28),
         SectionHeader(
@@ -185,6 +192,12 @@ class _UserHome extends StatelessWidget {
         _TonightList(interests: prefs.categories),
       ],
     );
+  }
+
+  void _openCategory(BuildContext context, WidgetRef ref, String category) {
+    ref.read(mapSearchProvider.notifier).clear();
+    ref.read(mapFiltersProvider.notifier).selectCategory(category);
+    context.go(Routes.map);
   }
 }
 

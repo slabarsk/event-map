@@ -2,8 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
-/// Cihaz konumu. Yalnızca "yakınımda" araması sırasında istenir; konum hiçbir
-/// yere yazılmaz, yalnızca o sorguda gönderilir.
+/// Cihaz konumu. "Yakınımda" araması veya harita mesafe filtresi seçilince
+/// istenir; konum kalıcı olarak saklanmaz.
 abstract class LocationService {
   /// İzin verilmediyse ya da konum alınamadıysa null.
   Future<LatLng?> current();

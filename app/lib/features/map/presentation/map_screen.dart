@@ -3,27 +3,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:material_ui/material_ui.dart';
 
-import '../../../core/config/env.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/common.dart';
 import '../../events/application/events_providers.dart';
 import '../../events/domain/event.dart';
-import '../../events/presentation/venue_events_sheet.dart';
+import '../../events/presentation/event_visuals.dart';
 import '../../search/application/search_providers.dart';
-import '../../search/domain/search_result.dart';
-import 'widgets/venue_pin.dart';
+import '../application/map_filter_provider.dart';
+import '../domain/map_filters.dart';
+import 'widgets/event_map_view.dart';
+import 'widgets/map_filter_sheet.dart';
 
-/// Konak / Alsancak civarı; ilk açılışta şehir merkezini gösterir.
-const izmirCenter = LatLng(38.4300, 27.1400);
-const _initialZoom = 12.0;
+export 'widgets/event_map_view.dart' show izmirCenter;
 
-/// Tam ekran etkinlik haritası: mekân başına bir pin, dokununca o mekândaki
-/// etkinlikler. Bir arama sonucu gönderildiyse yalnızca onun etkinlikleri ve
-/// (konumla arandıysa) kullanıcının konumu gösterilir.
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key, this.showTiles = true});
-
-  /// Testlerde ağ isteği atmamak için kapatılır.
   final bool showTiles;
 
   @override
@@ -39,62 +33,70 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     super.dispose();
   }
 
+  CameraFit? _fit(List<VenueGroup> groups, LatLng? location) {
+    final size = MediaQuery.sizeOf(context);
+    final points = [for (final g in groups) LatLng(g.lat, g.lng), ?location];
+    if (points.isEmpty) return null;
+    // Tek koordinat da sabit zoom ile kadraja alınır.
+    if (points.every((p) => p == points.first)) {
+      return CameraFit.bounds(
+        bounds: LatLngBounds(
+          LatLng(points.first.latitude - 0.004, points.first.longitude - 0.004),
+          LatLng(points.first.latitude + 0.004, points.first.longitude + 0.004),
+        ),
+        maxZoom: 15,
+      );
+    }
+    return CameraFit.coordinates(
+      coordinates: points,
+      padding: EdgeInsets.fromLTRB(
+        48,
+        (size.height * 0.35).clamp(0.0, 210.0),
+        48,
+        (size.height * 0.25).clamp(0.0, 180.0),
+      ),
+      maxZoom: 15,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final groups = ref.watch(venueGroupsProvider);
     final search = ref.watch(mapSearchProvider);
+    final filters = ref.watch(mapFiltersProvider);
+    final values = groups.value ?? const <VenueGroup>[];
+    final here = filters.location ?? search?.location;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
-    final here = search?.location;
+
+    // Filtreler/aramanın değişmesi mevcut haritanın kamerasını da günceller.
+    ref.listen(venueGroupsProvider, (_, next) {
+      if (ref.read(mapFiltersProvider).activeCount == 0 &&
+          ref.read(mapSearchProvider) == null) {
+        return;
+      }
+      final fit = _fit(
+        next.value ?? const [],
+        ref.read(mapFiltersProvider).location ??
+            ref.read(mapSearchProvider)?.location,
+      );
+      if (fit != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _map.fitCamera(fit);
+        });
+      }
+    });
 
     return Stack(
       children: [
-        FlutterMap(
-          mapController: _map,
-          options: MapOptions(
-            initialCenter: izmirCenter,
-            initialZoom: _initialZoom,
-            initialCameraFit: _fit(search),
-            minZoom: 8,
-            maxZoom: 18,
-            backgroundColor: Color(0xFFF4EEEA),
-            interactionOptions: const InteractionOptions(
-              flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
-            ),
-          ),
-          children: [
-            if (widget.showTiles)
-              ColorFiltered(colorFilter: _softTiles, child: _tiles()),
-            if (here != null)
-              MarkerLayer(
-                markers: [
-                  Marker(
-                    key: const ValueKey('my-location'),
-                    point: here,
-                    width: 22,
-                    height: 22,
-                    child: const _MyLocationDot(),
-                  ),
-                ],
-              ),
-            MarkerLayer(
-              markers: [
-                for (final g in groups.value ?? const <VenueGroup>[])
-                  Marker(
-                    key: ValueKey('pin-${g.venueId}'),
-                    point: LatLng(g.lat, g.lng),
-                    width: VenuePin.width,
-                    height: VenuePin.height,
-                    alignment: Alignment.topCenter,
-                    child: VenuePin(
-                      group: g,
-                      onTap: () => VenueEventsSheet.show(context, g),
-                    ),
-                  ),
-              ],
-            ),
-          ],
+        EventMapView(
+          controller: _map,
+          groups: values,
+          location: here,
+          fit: search != null || filters.activeCount > 0
+              ? _fit(values, here)
+              : null,
+          showTiles: widget.showTiles,
         ),
-        // Yalnızca üst şeridi kaplar; haritanın geri kalanı dokunuşa açık kalır.
         Positioned(
           top: 0,
           left: 0,
@@ -105,18 +107,45 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
               child: MaxWidth(
                 width: 560,
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Expanded(
-                      child: search == null
-                          ? _HeaderCard(groups: groups)
-                          : _SearchHeader(result: search),
+                    Row(
+                      children: [
+                        Expanded(child: _HeaderCard(groups: groups)),
+                        const SizedBox(width: 10),
+                        GlassIconButton(
+                          icon: Icons.center_focus_strong_rounded,
+                          tooltip: 'Şehir merkezine dön',
+                          onPressed: () => _map.move(izmirCenter, 12),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 10),
-                    GlassIconButton(
-                      icon: Icons.center_focus_strong_rounded,
-                      tooltip: 'Şehir merkezine dön',
-                      onPressed: () => _map.move(izmirCenter, _initialZoom),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        FilledButton.icon(
+                          key: const ValueKey('open-map-filters'),
+                          onPressed: () => MapFilterSheet.show(context),
+                          icon: const Icon(Icons.tune_rounded, size: 18),
+                          label: Text(
+                            filters.activeCount == 0
+                                ? 'Filtreler'
+                                : 'Filtreler · ${filters.activeCount}',
+                          ),
+                        ),
+                        if (filters.activeCount > 0) ...[
+                          ActionChip(
+                            avatar: const Icon(Icons.close_rounded, size: 16),
+                            label: const Text('Sıfırla'),
+                            onPressed: () =>
+                                ref.read(mapFiltersProvider.notifier).clear(),
+                          ),
+                        ],
+                      ],
                     ),
                   ],
                 ),
@@ -124,7 +153,32 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             ),
           ),
         ),
-        // Pinch ve çift dokunma da çalışır; butonlar fare/trackpad (web, simülatör) için.
+        if (groups.hasValue && values.isEmpty)
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: GlassCard(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.search_off_rounded, size: 32),
+                    const SizedBox(height: 8),
+                    Text(
+                      filters.activeCount > 0
+                          ? 'Bu filtrelere uygun etkinlik bulunamadı.'
+                          : 'Gösterilecek etkinlik bulunamadı.',
+                    ),
+                    if (filters.activeCount > 0)
+                      TextButton(
+                        onPressed: () =>
+                            ref.read(mapFiltersProvider.notifier).clear(),
+                        child: const Text('Filtreleri temizle'),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         Positioned(
           right: 16,
           bottom: bottomInset + 124,
@@ -147,73 +201,16 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         if (widget.showTiles)
           Positioned(
             right: 10,
-            // Alttaki yüzen menünün (66 + 16 boşluk) üstünde kalsın.
             bottom: bottomInset + 92,
-            child: const _Attribution(),
+            child: const MapAttribution(),
           ),
       ],
-    );
-  }
-
-  /// Arama sonucunun tüm pinlerini (ve kullanıcının konumunu) kadraja alır.
-  static CameraFit? _fit(SearchResult? search) {
-    if (search == null) return null;
-    final points = [
-      for (final e in search.events) LatLng(e.lat, e.lng),
-      ?search.location,
-    ];
-    if (points.length < 2) return null;
-    return CameraFit.coordinates(
-      coordinates: points,
-      padding: const EdgeInsets.fromLTRB(48, 140, 48, 180),
-      maxZoom: 15,
     );
   }
 
   void _zoomBy(double delta) {
     final camera = _map.camera;
     _map.move(camera.center, (camera.zoom + delta).clamp(8.0, 18.0));
-  }
-
-  /// Haritayı hafif renkli yapar: doygunluğu %55'e indirir ve %15 beyaza
-  /// karıştırır. Böylece kategori renkli pinler altlıkta kaybolmaz.
-  static const _softTiles = ColorFilter.matrix(<double>[
-    // satır: R, G, B, A, ofset (0-255)
-    0.85 * (0.55 + 0.45 * 0.2126),
-    0.85 * (0.45 * 0.7152),
-    0.85 * (0.45 * 0.0722),
-    0,
-    38,
-    0.85 * (0.45 * 0.2126),
-    0.85 * (0.55 + 0.45 * 0.7152),
-    0.85 * (0.45 * 0.0722),
-    0,
-    38,
-    0.85 * (0.45 * 0.2126),
-    0.85 * (0.45 * 0.7152),
-    0.85 * (0.55 + 0.45 * 0.0722),
-    0,
-    38,
-    0, 0, 0, 1, 0,
-  ]);
-
-  TileLayer _tiles() {
-    if (Env.hasMapbox) {
-      return TileLayer(
-        // streets-v12 (su mavi, parklar yeşil); _softTiles ile soldurulur.
-        urlTemplate: 'https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/256/{z}/{x}/{y}@2x?access_token={accessToken}',
-        additionalOptions: const {'accessToken': Env.mapboxPublicToken},
-        userAgentPackageName: 'com.eventmap.event_map',
-        maxNativeZoom: 20,
-      );
-    }
-    // Yalnızca geliştirme için: OSM tile kullanım politikası yoğun trafiğe
-    // izin vermez. Yayında MAPBOX_PUBLIC_TOKEN verilmelidir.
-    return TileLayer(
-      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-      userAgentPackageName: 'com.eventmap.event_map',
-      maxNativeZoom: 19,
-    );
   }
 }
 
@@ -223,30 +220,48 @@ class _HeaderCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final search = ref.watch(mapSearchProvider);
+    final filters = ref.watch(mapFiltersProvider);
     final text = Theme.of(context).textTheme;
     final subtitle = switch (groups) {
-      AsyncData(:final value) when value.isEmpty =>
-        'Yaklaşan etkinlik bulunamadı',
+      AsyncData(:final value) when value.isEmpty => 'Etkinlik bulunamadı',
       AsyncData(:final value) =>
-        '${value.fold(0, (n, g) => n + g.events.length)} etkinlik · '
-            '${value.length} mekân',
+        '${value.fold(0, (n, g) => n + g.events.length)} etkinlik · ${value.length} mekân',
       AsyncError(:final error) => error.toString(),
       _ => 'Etkinlikler yükleniyor…',
     };
+    final labels = [
+      if (search != null) ...search.labels,
+      if (filters.date != MapDateFilter.upcoming) filters.date.label,
+      for (final category in filters.categories)
+        eventCategoryOf(category).label,
+      if (filters.freeOnly) 'Ücretsiz',
+      if (!filters.freeOnly && filters.maxPrice != null)
+        '${filters.maxPrice} ₺ ve altı',
+      if (filters.radiusKm != null) '${filters.radiusKm} km',
+    ];
     return GlassCard(
-      radius: 999,
-      opacity: 0.85,
-      padding: const EdgeInsets.fromLTRB(18, 10, 10, 10),
+      radius: 24,
+      opacity: 0.9,
+      padding: const EdgeInsets.fromLTRB(14, 10, 6, 10),
       child: Row(
         children: [
-          const Icon(Icons.map_rounded, color: AppColors.coral),
-          const SizedBox(width: 12),
+          Icon(
+            search == null ? Icons.map_rounded : Icons.auto_awesome_rounded,
+            color: AppColors.coral,
+          ),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('İzmir etkinlikleri', style: text.titleSmall),
+                Text(
+                  search?.query ?? 'İzmir etkinlikleri',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: text.titleSmall,
+                ),
                 Text(
                   subtitle,
                   maxLines: 1,
@@ -257,9 +272,22 @@ class _HeaderCard extends ConsumerWidget {
                         : AppColors.inkSoft,
                   ),
                 ),
+                if (labels.isNotEmpty)
+                  Text(
+                    labels.join(' · '),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: text.bodySmall,
+                  ),
               ],
             ),
           ),
+          if (search != null)
+            IconButton(
+              tooltip: 'Aramayı temizle',
+              icon: const Icon(Icons.close_rounded),
+              onPressed: () => ref.read(mapSearchProvider.notifier).clear(),
+            ),
           if (groups.isLoading)
             const Padding(
               padding: EdgeInsets.all(8),
@@ -272,100 +300,12 @@ class _HeaderCard extends ConsumerWidget {
             IconButton(
               tooltip: 'Tekrar dene',
               icon: const Icon(Icons.refresh_rounded),
-              onPressed: () => ref.invalidate(upcomingEventsProvider),
+              onPressed: () {
+                ref.invalidate(upcomingEventsProvider);
+                ref.invalidate(mapEventsProvider);
+              },
             ),
         ],
-      ),
-    );
-  }
-}
-
-/// Haritada aktif arama: anlaşılan filtre ve temizleme butonu.
-class _SearchHeader extends ConsumerWidget {
-  const _SearchHeader({required this.result});
-  final SearchResult result;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final text = Theme.of(context).textTheme;
-    return GlassCard(
-      radius: 999,
-      opacity: 0.85,
-      padding: const EdgeInsets.fromLTRB(18, 10, 6, 10),
-      child: Row(
-        children: [
-          const Icon(Icons.auto_awesome_rounded, color: AppColors.coral),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  result.query,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: text.titleSmall,
-                ),
-                Text(
-                  '${result.events.length} etkinlik · ${result.labels.join(' · ')}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: text.bodySmall?.copyWith(color: AppColors.inkSoft),
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            tooltip: 'Aramayı temizle',
-            icon: const Icon(Icons.close_rounded),
-            onPressed: () => ref.read(mapSearchProvider.notifier).clear(),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MyLocationDot extends StatelessWidget {
-  const _MyLocationDot();
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      label: 'Konumun',
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.sky,
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 3),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.sky.withValues(alpha: 0.5),
-              blurRadius: 10,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Attribution extends StatelessWidget {
-  const _Attribution();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        Env.hasMapbox ? '© Mapbox © OpenStreetMap' : '© OpenStreetMap',
-        style: Theme.of(context).textTheme.labelSmall
-            ?.copyWith(color: AppColors.inkSoft),
       ),
     );
   }

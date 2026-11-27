@@ -12,6 +12,7 @@ import '../../auth/domain/app_user.dart';
 import '../../auth/presentation/widgets/auth_widgets.dart';
 import '../../events/application/events_providers.dart';
 import '../../events/presentation/venue_events_sheet.dart';
+import '../../map/application/map_filter_provider.dart';
 import '../application/search_providers.dart';
 import '../domain/search_result.dart';
 
@@ -99,6 +100,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   }
 
   void _showOnMap(SearchResult result) {
+    // Yeni aramada önceki elle seçilen filtreler sonuçları gizlemesin.
+    ref.read(mapFiltersProvider.notifier).clear();
     ref.read(mapSearchProvider.notifier).show(result);
     context.go(Routes.map);
   }

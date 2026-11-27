@@ -1,3 +1,5 @@
+import 'package:latlong2/latlong.dart';
+
 import '../domain/event.dart';
 
 /// Ekranlarda doğrudan gösterilebilen, Türkçe mesajlı veri hatası.
@@ -14,5 +16,12 @@ class EventsFailure implements Exception {
 abstract class EventsRepository {
   /// [from] sonrasında biten (ya da devam eden) yayınlanmış etkinlikler.
   /// [to] verilirse o andan önce başlayanlarla sınırlanır.
-  Future<List<MapEvent>> upcoming({required DateTime from, DateTime? to});
+  Future<List<MapEvent>> upcoming({
+    required DateTime from,
+    DateTime? to,
+    Set<String> categories = const {},
+    int? maxPrice,
+    LatLng? location,
+    int? radiusM,
+  });
 }

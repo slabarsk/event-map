@@ -8,11 +8,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:latlong2/latlong.dart';
 
 class _FailingRepository implements EventsRepository {
   @override
-  Future<List<MapEvent>> upcoming({required DateTime from, DateTime? to}) =>
-      Future.error(const EventsFailure('Etkinlikler yüklenemedi.'));
+  Future<List<MapEvent>> upcoming({
+    required DateTime from,
+    DateTime? to,
+    Set<String> categories = const {},
+    int? maxPrice,
+    LatLng? location,
+    int? radiusM,
+  }) => Future.error(const EventsFailure('Etkinlikler yüklenemedi.'));
 }
 
 Widget _app(EventsRepository repo, {DateTime? now}) => ProviderScope(

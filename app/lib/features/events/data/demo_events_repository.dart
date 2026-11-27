@@ -1,3 +1,5 @@
+import 'package:latlong2/latlong.dart';
+
 import '../domain/event.dart';
 import '../domain/event_format.dart';
 import 'events_repository.dart';
@@ -15,6 +17,10 @@ class DemoEventsRepository implements EventsRepository {
   Future<List<MapEvent>> upcoming({
     required DateTime from,
     DateTime? to,
+    Set<String> categories = const {},
+    int? maxPrice,
+    LatLng? location,
+    int? radiusM,
   }) async {
     final dayStart = EventFormat.istanbulDayStart(_clock());
     final events = [
@@ -23,6 +29,20 @@ class DemoEventsRepository implements EventsRepository {
     // events_near ile aynı süzgeç: bitişi (yoksa başlangıç + 3 saat) from'dan
     // sonra olanlar; to verildiyse ondan önce başlayanlar.
     return events.where((e) {
+      if (categories.isNotEmpty && !categories.contains(e.category)) {
+        return false;
+      }
+      final price = e.priceMin ?? e.priceMax;
+      if (maxPrice != null && (price == null || price > maxPrice)) return false;
+      if (location != null &&
+          const Distance().as(
+                LengthUnit.Meter,
+                location,
+                LatLng(e.lat, e.lng),
+              ) >
+              (radiusM ?? 5000)) {
+        return false;
+      }
       final end = e.endsAt ?? e.startsAt.add(const Duration(hours: 3));
       return !end.isBefore(from) && (to == null || !e.startsAt.isAfter(to));
     }).toList()..sort((a, b) => a.startsAt.compareTo(b.startsAt));

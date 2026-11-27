@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../domain/event.dart';
 import 'events_repository.dart';
@@ -13,6 +14,10 @@ class SupabaseEventsRepository implements EventsRepository {
   Future<List<MapEvent>> upcoming({
     required DateTime from,
     DateTime? to,
+    Set<String> categories = const {},
+    int? maxPrice,
+    LatLng? location,
+    int? radiusM,
   }) async {
     try {
       final rows = await _client.rpc<List<dynamic>>(
@@ -20,6 +25,13 @@ class SupabaseEventsRepository implements EventsRepository {
         params: {
           'p_from': from.toUtc().toIso8601String(),
           'p_to': to?.toUtc().toIso8601String(),
+          if (categories.isNotEmpty) 'p_categories': categories.toList(),
+          'p_max_price': ?maxPrice,
+          if (location != null) ...{
+            'p_lat': location.latitude,
+            'p_lng': location.longitude,
+            'p_radius_m': radiusM ?? 5000,
+          },
         },
       );
       return [

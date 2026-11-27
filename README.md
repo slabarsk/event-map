@@ -154,7 +154,7 @@ pip install -r eval/requirements.txt
 pytest eval
 ```
 
-> Stage 5'te sırada harita filtreleri ve pin kümeleme var. Kaynakların uçtan uca canlı crawl kontrolü için [docs/sources.md](docs/sources.md).
+> Haritada tarih, kategori, ücretsiz/fiyat ve konuma göre mesafe filtreleri ile pin kümeleme hazır. Ana sayfa önizlemesi gerçek etkinlikleri gösterir; kategoriye dokununca filtrelenmiş harita açılır. Kaynakların uçtan uca canlı crawl kontrolü için [docs/sources.md](docs/sources.md).
 
 ## Güvenlik ve veri
 
