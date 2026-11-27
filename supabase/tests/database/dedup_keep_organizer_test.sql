@@ -17,7 +17,7 @@ insert into public.events (
 ) values
   -- Çift A: organizatör kaydı (A1) + crawl kaydı (A2)
   ('30000000-0000-0000-0000-0000000000a1', 'Caz Gecesi', null,
-   '2026-12-20 21:00:00+03', :'v_id', 'concert', null, null, 'listed', null, 'published', 'organizer',
+   '2026-12-20 21:00:00+03', :'v_id', 'concert', null, null, 'unknown', null, 'published', 'organizer',
    '00000000-0000-0000-0000-0000000000e1'),
   ('30000000-0000-0000-0000-0000000000a2', 'Caz Gecesi', 'Biletinial açıklaması',
    '2026-12-20 21:00:00+03', :'v_id', 'concert', 300, 500, 'listed', 'https://bilet.example/caz', 'published', 'crawl',
