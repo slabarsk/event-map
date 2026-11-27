@@ -44,6 +44,9 @@ jobs:
 
       - run: pip install -r crawler/requirements.txt
 
+      # Biletinial ve Bornova listeleri JS ile çiziliyor (type = 'playwright').
+      - run: python -m playwright install --with-deps chromium
+
       - name: Crawl
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
