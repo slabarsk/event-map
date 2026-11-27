@@ -64,11 +64,21 @@ class FakeDb:
         return [c for c in self.candidates if c["id"] != exclude_id]
 
     def merge_events(self, keep_id, drop_id):
+        """SQL merge_events gibi: organizatör kaydı silinmez, silinen id döner."""
+        def is_org(eid):
+            ev = self.events.get(eid) or {}
+            return ev.get("origin") == "organizer" or ev.get("created_by") is not None
+
+        if is_org(keep_id) and is_org(drop_id):
+            return None
+        if is_org(drop_id):
+            keep_id, drop_id = drop_id, keep_id
         self.merged_pairs.append((keep_id, drop_id))
         for row in self.event_sources.values():
             if row["event_id"] == drop_id:
                 row["event_id"] = keep_id
         self.events.pop(drop_id, None)
+        return drop_id
 
     def upcoming_published_events(self, limit=200):
         return [{"id": k, "venue": {"name": "Ahmet Adnan Saygun Sanat Merkezi"}, **v}

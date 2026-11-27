@@ -174,9 +174,13 @@ def find_event_candidates(
     return res.data or []
 
 
-def merge_events(keep_id: str, drop_id: str) -> None:
-    """p_drop kaydının kaynaklarını ve kullanıcı kayıtlarını p_keep kaydına taşır ve p_drop'u siler."""
-    client().rpc("merge_events", {"p_keep": keep_id, "p_drop": drop_id}).execute()
+def merge_events(keep_id: str, drop_id: str) -> str | None:
+    """İki kaydı birleştirir ve silinen kaydın id'sini döner (birleştirme yapılmadıysa None).
+
+    Organizatör kaydı (origin = 'organizer' ya da created_by dolu) hiç silinmez: gerekirse
+    SQL tarafında keep/drop yer değiştirir; iki kayıt da organizatöre aitse birleştirme yapılmaz."""
+    res = client().rpc("merge_events", {"p_keep": keep_id, "p_drop": drop_id}).execute()
+    return res.data or None
 
 
 def upcoming_published_events(limit: int = 200) -> list[dict[str, Any]]:

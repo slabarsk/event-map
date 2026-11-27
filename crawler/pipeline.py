@@ -315,9 +315,10 @@ def dedup_existing_events(
             dropped.add(row_id)
             continue
         try:
-            db.merge_events(dup_id, row_id)
-            dropped.add(row_id)
-            stats.events_merged += 1
+            dropped_id = db.merge_events(dup_id, row_id)
+            if dropped_id:  # organizatör kaydı korunur: silinen kayıt row_id olmayabilir
+                dropped.add(dropped_id)
+                stats.events_merged += 1
         except Exception as exc:
             stats.error(f"dedup-merge:{row_id}->{dup_id}", exc)
 

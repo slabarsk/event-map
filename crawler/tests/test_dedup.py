@@ -278,6 +278,44 @@ def test_dedup_existing_events_mevcut_ciftleri_birlestirir(fake):
     assert "ev-1" not in fake.events and "ev-2" in fake.events
 
 
+def _senfoni_pair(fake, ev1_extra=None, ev2_extra=None):
+    base = {
+        "starts_at": NEXT_WEEK.isoformat(),
+        "venue_id": "venue-aassm",
+        "category": "concert",
+        "price_min": 200,
+        "price_max": 400,
+        "price_status": "listed",
+    }
+    fake.events["ev-1"] = {**base, "title": "Senfoni Konseri", **(ev1_extra or {})}
+    fake.events["ev-2"] = {**base, "title": "Senfoni Konseri - İDSO", **(ev2_extra or {})}
+    fake.candidates = [
+        {"id": "ev-2", "title": "Senfoni Konseri - İDSO", "starts_at": NEXT_WEEK.isoformat(),
+         "venue_id": "venue-aassm", "title_sim": 0.45},
+    ]
+
+
+def test_dedup_existing_events_organizator_kaydini_silmez(fake):
+    # ev-1 (taranan, silinecek taraf) organizatöre ait: SQL yer değiştirir, ev-2 silinir.
+    _senfoni_pair(fake, ev1_extra={"origin": "organizer", "created_by": "user-1"})
+    claude = FakeDedupClaude(answers=[True])
+    stats = pipeline.dedup_existing_events(claude, dedup_agent=DedupAgent(claude))
+
+    assert stats.events_merged == 1
+    assert fake.merged_pairs == [("ev-1", "ev-2")]
+    assert "ev-1" in fake.events and "ev-2" not in fake.events
+
+
+def test_dedup_existing_events_iki_organizator_kaydini_birlestirmez(fake):
+    _senfoni_pair(fake, ev1_extra={"origin": "organizer"}, ev2_extra={"created_by": "user-2"})
+    claude = FakeDedupClaude(answers=[True])
+    stats = pipeline.dedup_existing_events(claude, dedup_agent=DedupAgent(claude))
+
+    assert stats.events_found == 1 and stats.events_merged == 0
+    assert fake.merged_pairs == []
+    assert {"ev-1", "ev-2"} <= set(fake.events)
+
+
 def test_cli_dedup_bayragi_discover_ve_price_backfill_ile_cakismaz():
     with pytest.raises(SystemExit) as exc:
         run.main(["--discover", "--source", "bornova", "--dedup"])
