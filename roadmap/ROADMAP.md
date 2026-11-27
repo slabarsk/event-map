@@ -8,13 +8,13 @@ Plan 10 aşamadan oluşur. Her aşamada hedef, yapılacaklar ve haftalık sunumd
 
 ## Güncel durum (19 Kasım 2026)
 
-Stage 3 ve Stage 4 tamamlandı. Stage 5'te fiyat ajanı ve yönetim paneli canlıda; "near me tonight" araması, organizatör paneli ve kayıtlı etkinlikler eklendi. Beş kaynak adapter'ı implement edildi ve anahtarsız canlı liste keşfi doğrulandı; yeni kaynakların DB'ye açılması ve uçtan uca canlı crawl kontrolü bekliyor. Duplicate merge ve harita filtreleri sırada.
+Stage 3 ve Stage 4 tamamlandı. Stage 5'te fiyat ajanı ve yönetim paneli canlıda; "near me tonight" araması, organizatör paneli, kayıtlı etkinlikler, beş kaynak adapter'ı ve kaynaklar arası duplicate merge eklendi. Harita filtreleri/pin kümeleme ve yeni kaynak/dedup migration'larının canlıya uygulanması sırada.
 
 **Canlıda çalışanlar**
 
 | Alan | Durum |
 |---|---|
-| Veri toplama | AASSM kaynağı canlı Supabase'e yazıyor. Cron haftalık (Cuma 06:17); daha önce görülen sayfalar atlanarak maliyet düşürüldü. |
+| Veri toplama | AASSM kaynağı canlı Supabase'e yazıyor. Beş kaynak adapter'ı (AASSM, Biletinial, Bornova, Karşıyaka, İzmir Kültür Sanat Fabrikası) ve duplicate merge hazır. Cron haftalık (Cuma 06:17); daha önce görülen sayfalar atlanarak maliyet düşürüldü. |
 | Fiyat ajanı | Fiyatı olmayan etkinlikte önce bilet sayfasına, sonra web aramasına bakıyor; bulamazsa tahmin edip "Tahmini" olarak işaretliyor. |
 | Başvuru ile katılım | Ön kayıt ya da başvuru formuyla katılınan etkinlikler "Başvuru ile" etiketiyle gösteriliyor; bunlar için fiyat tahmini yapılmıyor. |
 | Harita | Yakınlaştırma butonları, hafif renkli altlık, mekâna dokununca açılan etkinlik listesi. |
@@ -24,10 +24,9 @@ Stage 3 ve Stage 4 tamamlandı. Stage 5'te fiyat ajanı ve yönetim paneli canl�
 
 **Sıradaki işler**
 
-1. Beş kaynak kodu hazır: yeni kaynak migration'ını uygula ve küçük limitli canlı crawl ile çıkarım/geocode/yazımı doğrula (bkz. [kaynak denetimi](../docs/sources.md)).
-2. Duplicate merge.
-3. Harita filtreleri ve pin kümeleme.
-4. Google girişini iOS ve Android cihazda denemek.
+1. Harita filtreleri ve pin kümeleme (tarih, kategori, ücretsiz/fiyat, mesafe filtreleri + clustering).
+2. Yeni kaynak (`20261119000000_stage5_sources.sql`) ve duplicate merge (`20261126010000_duplicate_merge.sql`) migration'larını canlıya uygulayıp küçük limitli canlı crawl ile doğrulamak (bkz. [kaynak denetimi](../docs/sources.md)).
+3. Google girişini iOS ve Android cihazda denemek.
 
 ---
 
@@ -235,7 +234,7 @@ MAPBOX_SECRET_TOKEN=         # crawler (geocoding)
 - [x] **5 kaynak adapter'ı:** AASSM, Biletinial, Bornova Belediyesi, Karşıyaka Belediyesi, İzmir Kültür Sanat Fabrikası. JS listelerde Playwright, statik listelerde HTTP; detaylar Firecrawl. Migration, Chromium CI kurulumu, yerel HTML/Chromium testleri ve [kaynak denetimi](../docs/sources.md) hazır.
 - [ ] **5 kaynağın canlı doğrulaması:** Migration'ı uygula; küçük limitli crawl ile çıkarım, fiyat, geocoding ve DB yazımını doğrula. Anahtarsız `--discover --limit 3` kontrolü tamamlandı; Karşıyaka'nın güncel takvimi kontrolde boştu.
 - [x] **Fiyat ajanı:** Fiyat yoksa önce etkinliğin bilet/detay sayfasına gider, gerekirse Firecrawl search kullanır, bulursa `looked_up` ve kaynak URL'si yazar. Bulamazsa Claude aynı mekân, kategori ve benzer etkinliklerden bir aralık tahmin eder, `estimated` yazar. UI'da her zaman "Tahmini" rozeti gösterilir.
-- [ ] **Duplicate merge:** Önce aday çiftler çıkarılır: aynı mekân ya da 200 m içinde (`ST_DWithin`), başlangıç saati ±2 saat, `pg_trgm` başlık benzerliği. Kesin eşleşmeler otomatik birleşir. Belirsiz olanlara Claude evet/hayır kararı verir. Kaynaklar `event_sources` altında toplanır.
+- [x] **Duplicate merge:** Önce aday çiftler çıkarılır (`find_event_candidates`): aynı mekân ya da 200 m içinde (`ST_DWithin`), başlangıç saati ±2 saat, `pg_trgm` başlık benzerliği (`>= 0.25`). Kesin eşleşmeler (`>= 0.75` veya birebir normalize başlık) otomatik birleşir. Belirsiz olanlara Claude evet/hayır kararı verir (`crawler/dedup/`). Kaynaklar `event_sources` altında toplanır; eksik alanlar ve daha güvenilir fiyat (`listed` > `looked_up` > `estimated`) mevcut kayda işlenir (`merge_events`).
 - [ ] **Harita ve filtreler:** Tarih (bugün, bu hafta sonu), kategori, ücretsiz/fiyat, mesafe. Pin kümeleme (clustering) ve etkinlik detay kartı.
 - [x] **"Near me tonight":** `nl-search` Edge Function'ı. Claude soruyu `{categories, max_price, time_window, near_me, radius_m}` JSON'una çevirir, bu JSON `events_near` RPC'sine gider. Saat dilimi `Europe/Istanbul`. "Tonight" şimdilik 17:00–03:00 (`filter.ts` içinde sabit; Stage 2 bulgularına göre güncellenir). Claude'a ulaşılamazsa kural tabanlı ayrıştırıcı devreye girer.
 - [x] **Başvuru ile katılım:** Ön kayıt ya da başvuru formuyla katılınan etkinlikler işaretlenir (`requires_registration`), uygulamada "Başvuru ile" etiketi çıkar ve bu etkinlikler için fiyat tahmini yapılmaz.

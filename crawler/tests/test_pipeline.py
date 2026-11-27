@@ -34,6 +34,12 @@ class FakeDb:
         monkeypatch.setattr(db, "update_event", lambda i, row: self.events[i].update(row))
         monkeypatch.setattr(db, "upsert_event_source", self.upsert_event_source)
         monkeypatch.setattr(db, "match_venue", lambda name: self.venues.get(name.lower()))
+        monkeypatch.setattr(db, "get_event", lambda i: self.events.get(i))
+        monkeypatch.setattr(db, "find_event_candidates", self.find_event_candidates)
+        monkeypatch.setattr(db, "merge_events", self.merge_events)
+        monkeypatch.setattr(db, "upcoming_published_events", self.upcoming_published_events)
+        self.candidates: list[dict] = []
+        self.merged_pairs: list[tuple[str, str]] = []
 
     def start_run(self, source_id):
         self.runs["run-1"] = {"source_id": source_id}
@@ -53,6 +59,20 @@ class FakeDb:
 
     def upsert_event_source(self, row):
         self.event_sources[(row["source_id"], row["external_id"], row["idx"])] = row
+
+    def find_event_candidates(self, title, starts_at, venue_id, exclude_id=None):
+        return [c for c in self.candidates if c["id"] != exclude_id]
+
+    def merge_events(self, keep_id, drop_id):
+        self.merged_pairs.append((keep_id, drop_id))
+        for row in self.event_sources.values():
+            if row["event_id"] == drop_id:
+                row["event_id"] = keep_id
+        self.events.pop(drop_id, None)
+
+    def upcoming_published_events(self, limit=200):
+        return [{"id": k, "venue": {"name": "Ahmet Adnan Saygun Sanat Merkezi"}, **v}
+                for k, v in list(self.events.items())[:limit]]
 
 
 class FakeAdapter(SourceAdapter):

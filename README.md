@@ -2,7 +2,7 @@
 
 İzmir'deki etkinlikleri her gün web'den toplayıp tarih, mekân, kategori ve fiyat bilgisiyle konum tabanlı bir haritada gösteren mobil uygulama. Fiyat yoksa ajan arar; bulamazsa tahmin eder ve **"Tahmini"** olarak etiketler.
 
-> Durum: **Stage 5 – Core MVP.** Fiyat ajanı, yönetim paneli, doğal dil araması (`nl-search`), organizatör paneli ve kayıtlı etkinlikler hazır. AASSM, Biletinial, Bornova, Karşıyaka ve İzmir Kültür Sanat Fabrikası için beş kaynak adapter'ı ve Chromium CI kurulumu var; yeni kaynaklar `20261119000000_stage5_sources.sql` migration'ı uygulanınca açılır. [Kaynak kontrolü ve doğrulama](docs/sources.md), [roadmap](roadmap/ROADMAP.md), [mimari](roadmap/architecture.html).
+> Durum: **Stage 5 – Core MVP.** Fiyat ajanı, yönetim paneli, doğal dil araması (`nl-search`), organizatör paneli, kayıtlı etkinlikler, beş kaynak adapter'ı (AASSM, Biletinial, Bornova, Karşıyaka, İzmir Kültür Sanat Fabrikası) ve kaynaklar arası duplicate merge hazır. [Kaynak kontrolü ve doğrulama](docs/sources.md), [roadmap](roadmap/ROADMAP.md), [mimari](roadmap/architecture.html).
 
 ## Demo Day hedefleri
 
@@ -108,6 +108,7 @@ python -m crawler.run --discover --source bornova --limit 2  # anahtarsız, yaln
 python -m crawler.run --source aassm --dry-run --limit 2   # DB'ye yazmadan, 2 sayfayla dene
 python -m crawler.run --source aassm             # Supabase'e yaz
 python -m crawler.run                           # açık olan tüm kaynaklar
+python -m crawler.run --dedup --limit 100       # mevcut etkinliklerde duplicate taraması
 python -m pytest crawler                         # birim testleri
 ```
 
@@ -153,7 +154,7 @@ pip install -r eval/requirements.txt
 pytest eval
 ```
 
-> Stage 5'te sırada duplicate merge ve harita filtreleri/kümeleme var. Kaynakların uçtan uca canlı crawl kontrolü için [docs/sources.md](docs/sources.md).
+> Stage 5'te sırada harita filtreleri ve pin kümeleme var. Kaynakların uçtan uca canlı crawl kontrolü için [docs/sources.md](docs/sources.md).
 
 ## Güvenlik ve veri
 
